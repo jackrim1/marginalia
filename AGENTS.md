@@ -68,8 +68,13 @@ from the CSS variables. So `tokens.css` must be loaded on the page too.
 ### 2. Load the CSS, in order
 
 ```
-tokens.css  →  primitives.css  →  components.css
+tokens.css  →  primitives.css  →  components.css  →  themes.css
 ```
+
+For dark/light support, also load `themes.css` and `js/theme.js` (in `<head>`,
+so the theme applies before first paint). Add a switch with buttons carrying
+`data-theme-set="light|darkroom|blueprint"`. Themes are pure token overrides;
+do not hardcode per-theme colours in components.
 
 Load `tokens.css` before Tailwind's output is not required, but it must be
 present at runtime for the colour variables to resolve.

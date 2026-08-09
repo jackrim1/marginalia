@@ -21,6 +21,8 @@
   <link rel="stylesheet" href="css/tokens.css" />
   <link rel="stylesheet" href="css/primitives.css" />
   <link rel="stylesheet" href="css/components.css" />
+  <link rel="stylesheet" href="css/themes.css" />
+  <script src="js/theme.js"></script>
 
   <!-- gallery doc-chrome only (not part of the system) -->
   <style>
@@ -36,7 +38,7 @@
     .item > .code {
       position: relative;
       margin-top: -1px;
-      background: rgb(var(--rgb-ink) / .93);
+      background: #17140f;   /* fixed dark so code stays readable in every theme */
     }
     .item > .code pre {
       margin: 0; padding: 1rem 1.1rem; overflow-x: auto;
@@ -72,7 +74,14 @@
         <span class="font-display text-2xl mg-printed">Marginalia</span>
         <span class="mg-mono-label mt-1 hidden sm:inline">Design System</span>
       </div>
-      <a href="index.html" class="mg-mono-label hover:text-rust border-b border-transparent hover:border-rust pb-0.5">View demo page →</a>
+      <div class="flex items-center gap-4">
+        <div class="hidden sm:flex items-center gap-1" role="group" aria-label="Theme">
+          <button class="mg-theme-btn" data-theme-set="light">Light</button>
+          <button class="mg-theme-btn" data-theme-set="darkroom">Dark</button>
+          <button class="mg-theme-btn" data-theme-set="blueprint">Blue</button>
+        </div>
+        <a href="index.html" class="mg-mono-label hover:text-rust border-b border-transparent hover:border-rust pb-0.5">View demo page →</a>
+      </div>
     </div>
   </header>
 

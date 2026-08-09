@@ -48,10 +48,10 @@ body {
 /* ---- Technical drawing grid ---- */
 .mg-drafting-grid {
   background-image:
-    linear-gradient(to right,  rgb(var(--rgb-grid) / .10)  1px, transparent 1px),
-    linear-gradient(to bottom, rgb(var(--rgb-grid) / .10)  1px, transparent 1px),
-    linear-gradient(to right,  rgb(var(--rgb-grid) / .045) 1px, transparent 1px),
-    linear-gradient(to bottom, rgb(var(--rgb-grid) / .045) 1px, transparent 1px);
+    linear-gradient(to right,  rgb(var(--rgb-grid) / var(--grid-alpha))     1px, transparent 1px),
+    linear-gradient(to bottom, rgb(var(--rgb-grid) / var(--grid-alpha))     1px, transparent 1px),
+    linear-gradient(to right,  rgb(var(--rgb-grid) / var(--grid-alpha-sub)) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(var(--rgb-grid) / var(--grid-alpha-sub)) 1px, transparent 1px);
   background-size:
     var(--grid-step) var(--grid-step),
     var(--grid-step) var(--grid-step),
@@ -71,9 +71,9 @@ body {
 
 
 /* ---- Halftone dot fills (put on a coloured block for mg-printed relief) ---- */
-.mg-halftone       { background-image: radial-gradient(circle, rgba(0,0,0,.55) 1.1px, transparent 1.4px); background-size: 5px 5px; }
-.mg-halftone-fine  { background-image: radial-gradient(circle, rgba(0,0,0,.5)   .9px, transparent 1.2px); background-size: 4px 4px; }
-.mg-halftone-light { background-image: radial-gradient(circle, rgba(0,0,0,.28)  1px,  transparent 1.3px); background-size: 6px 6px; }
+.mg-halftone       { background-image: radial-gradient(circle, rgb(var(--halftone-rgb) / .55) 1.1px, transparent 1.4px); background-size: 5px 5px; }
+.mg-halftone-fine  { background-image: radial-gradient(circle, rgb(var(--halftone-rgb) / .5)   .9px, transparent 1.2px); background-size: 4px 4px; }
+.mg-halftone-light { background-image: radial-gradient(circle, rgb(var(--halftone-rgb) / .28)  1px,  transparent 1.3px); background-size: 6px 6px; }
 
 
 /* ---- Letterpress / distressed ink text ----
@@ -104,12 +104,12 @@ body {
 
 /* ---- Crop / corner marks ---- */
 .mg-crop { position: absolute; width: 18px; height: 18px; opacity: .5; }
-.mg-crop::before, .mg-crop::after { content: ""; position: absolute; background: #5a5346; }
+.mg-crop::before, .mg-crop::after { content: ""; position: absolute; background: rgb(var(--crop-rgb)); }
 .mg-crop::before { width: 18px; height: 1px;  top: 0; }
 .mg-crop::after  { width: 1px;  height: 18px; left: 0; }
 
 /* thin double rule, as under headings in old papers */
-.mg-rule-double { border-top: 3px double #2a2723; }
+.mg-rule-double { border-top: 3px double rgb(var(--rgb-ink)); }
 
 
 /* ---- Entrance animations ---- */

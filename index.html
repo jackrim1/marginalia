@@ -17,10 +17,12 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Old+Standard+TT:ital,wght@0,400;0,700;1,400&family=Spectral:ital,wght@0,300;0,400;0,500;0,600;1,400;1,500&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
 
-  <!-- Design system: tokens -> primitives -> components -->
+  <!-- Design system: tokens -> primitives -> components -> themes -->
   <link rel="stylesheet" href="css/tokens.css" />
   <link rel="stylesheet" href="css/primitives.css" />
   <link rel="stylesheet" href="css/components.css" />
+  <link rel="stylesheet" href="css/themes.css" />
+  <script src="js/theme.js"></script>
 </head>
 
 <body class="mg-paper-grain font-serif text-ink antialiased selection:bg-ember/30">
@@ -84,7 +86,11 @@
 
         <!-- action -->
         <div class="flex items-center gap-3">
-          <span class="font-mono text-[10px] text-faded hidden lg:inline">fig.&nbsp;00</span>
+          <div class="hidden sm:flex items-center gap-1" role="group" aria-label="Theme">
+            <button class="mg-theme-btn" data-theme-set="light">Light</button>
+            <button class="mg-theme-btn" data-theme-set="darkroom">Dark</button>
+            <button class="mg-theme-btn" data-theme-set="blueprint">Blue</button>
+          </div>
           <button class="font-mono text-[11px] uppercase tracking-widest bg-ink text-paper px-4 py-2 hover:bg-rust transition-colors">
             New&nbsp;Note&nbsp;+
           </button>

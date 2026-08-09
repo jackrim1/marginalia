@@ -103,6 +103,22 @@ figure, timeline) is a **Tailwind markup pattern**. Copy it from
 
 ---
 
+## Theming (light / dark)
+
+Themes are token overrides selected by `[data-theme]` on `<html>`:
+
+- `light` — the default (values in `tokens.css`)
+- `darkroom` — warm charcoal ground
+- `blueprint` — deep indigo-navy ground
+
+Load `css/themes.css` and `js/theme.js`. The script sets `data-theme`, saves the
+choice to `localStorage`, and follows the OS on first visit. Add a switch with
+buttons: `<button class="mg-theme-btn" data-theme-set="darkroom">Dark</button>`.
+
+Because every colour is a token, a new theme is just a new `[data-theme="…"]`
+block. Tokens that flip per theme include the palette plus `--halftone-rgb`,
+`--crop-rgb`, `--grid-alpha`, `--dot-*`, `--mg-ink-line-rgb`, `--panel-highlight`.
+
 ## Rules
 
 **Do**

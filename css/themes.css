@@ -1,0 +1,62 @@
+/* ============================================================================
+   THEMES — palette overrides selected by [data-theme] on <html>.
+   Light is the default (defined in tokens.css). Each theme below only
+   re-defines tokens; every primitive and component follows automatically.
+   Set the theme with js/theme.js.
+   ========================================================================== */
+
+/* ---- Warm darkroom: charcoal ground, warm off-white ink ---- */
+[data-theme="darkroom"] {
+  color-scheme: dark;
+
+  --rgb-paper:   33 31 28;
+  --rgb-paper2:  42 39 36;
+  --rgb-panel:   50 46 42;
+  --rgb-ink:     234 228 218;
+  --rgb-faded:   168 160 148;
+  --rgb-rust:    220 102 54;
+  --rgb-ember:   242 150 82;
+  --rgb-coral:   204 150 122;
+  --rgb-slate:   150 160 178;
+  --rgb-grid:    198 190 172;
+  --rgb-regmark: 210 124 94;
+
+  --dot-rgb: 104 98 90;
+  --dot-alpha: .4;
+  --dot-layer-opacity: .3;
+  --grid-alpha: .11;
+  --grid-alpha-sub: .05;
+
+  --halftone-rgb: 255 253 247;   /* light dots so relief reads on dark blocks */
+  --crop-rgb: 168 160 148;
+  --mg-ink-line-rgb: 234 228 218;
+  --panel-highlight: .06;
+}
+
+/* ---- Cyanotype blueprint: deep indigo-navy ground, pale ink ---- */
+[data-theme="blueprint"] {
+  color-scheme: dark;
+
+  --rgb-paper:   14 24 44;
+  --rgb-paper2:  20 32 54;
+  --rgb-panel:   26 40 64;
+  --rgb-ink:     224 226 232;
+  --rgb-faded:   142 158 184;
+  --rgb-rust:    226 128 80;
+  --rgb-ember:   242 158 94;
+  --rgb-coral:   206 162 138;
+  --rgb-slate:   150 172 202;
+  --rgb-grid:    120 162 206;
+  --rgb-regmark: 220 136 106;
+
+  --dot-rgb: 96 138 192;
+  --dot-alpha: .32;
+  --dot-layer-opacity: .28;
+  --grid-alpha: .13;
+  --grid-alpha-sub: .06;
+
+  --halftone-rgb: 235 244 255;
+  --crop-rgb: 150 172 202;
+  --mg-ink-line-rgb: 224 226 232;
+  --panel-highlight: .07;
+}

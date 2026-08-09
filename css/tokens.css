@@ -47,10 +47,19 @@
   --dot-layer-opacity: 0.55;         /* how present the whole texture is */
 
   /* ---- Drafting grid ---- */
-  --grid-step:    96px;   /* coarse squares */
-  --grid-substep: 24px;   /* fine squares */
+  --grid-step:      96px;   /* coarse squares */
+  --grid-substep:   24px;   /* fine squares */
+  --grid-alpha:     .10;    /* coarse line strength */
+  --grid-alpha-sub: .045;   /* fine line strength */
+
+  /* ---- Print marks ---- */
+  --halftone-rgb: 0 0 0;    /* halftone dot colour (light theme: black holes) */
+  --crop-rgb:     90 83 70; /* crop-mark colour */
 
   /* ---- Panel opacities (how much paper shows through text panels) ---- */
   --panel-alpha:  0.72;
   --halo-alpha:   0.66;
+
+  /* ---- Ink lines (colour of the rough.js strokes; r g b triplet) ---- */
+  --mg-ink-line-rgb: 28 26 23;
 }

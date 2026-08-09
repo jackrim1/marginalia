@@ -36,9 +36,15 @@
     if (getComputedStyle(el).position === 'static') el.style.position = 'relative';
   }
 
+  // Read the ink-line colour token off an element (falls back to near-black).
+  function inkColor(el) {
+    const v = getComputedStyle(el).getPropertyValue('--mg-ink-line-rgb').trim();
+    return 'rgb(' + (v || '28 26 23') + ')';
+  }
+
   // A gradient of the ink colour whose OPACITY wanders along the stroke.
   let gid = 0;
-  function inkGradient(svg, diagonal) {
+  function inkGradient(svg, diagonal, color) {
     const id = 'ink-grad-' + (gid++);
     let defs = svg.querySelector('defs');
     if (!defs) { defs = document.createElementNS(SVGNS, 'defs'); svg.appendChild(defs); }
@@ -50,7 +56,7 @@
     for (let i = 0; i < stops; i++) {
       const s = document.createElementNS(SVGNS, 'stop');
       s.setAttribute('offset', ((i / (stops - 1)) * 100).toFixed(1) + '%');
-      s.setAttribute('stop-color', 'rgb(28,26,23)');
+      s.setAttribute('stop-color', color);
       const a = CONFIG.baseAlpha * (CONFIG.driftLo + Math.random() * (CONFIG.driftHi - CONFIG.driftLo));
       s.setAttribute('stop-opacity', Math.max(CONFIG.alphaMin, Math.min(CONFIG.alphaMax, a)).toFixed(3));
       g.appendChild(s);
@@ -73,7 +79,7 @@
       host(el);
       const svg = overlay(w, h);
       const rc = rough.svg(svg);
-      const id = inkGradient(svg, true);
+      const id = inkGradient(svg, true, inkColor(el));
       const node = rc.rectangle(2, 2, w - 4, h - 4, { ...CONFIG.box, seed: seed(i) });
       node.setAttribute('filter', 'url(#inkbreak)');
       paint(node, id);
@@ -91,7 +97,7 @@
       const svg = overlay(w, H);
       svg.style.top = -(H / 2) + 'px';
       const rc = rough.svg(svg);
-      const id = inkGradient(svg, false);
+      const id = inkGradient(svg, false, inkColor(el));
       const node = rc.line(1, y, w - 1, y, { ...CONFIG.line, seed: seed(i + 900) });
       node.setAttribute('filter', 'url(#inkbreak)');
       paint(node, id);

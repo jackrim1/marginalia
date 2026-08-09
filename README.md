@@ -23,6 +23,14 @@ The system is organised bottom-up. Each layer only depends on the one below it.
 | **Tokens** | `css/tokens.css` | Named values: colour, type, texture, grid. The single source of truth. |
 | **Primitives** | `css/primitives.css` | The material: paper texture, drafting grid, halftone, letterpress, animations. |
 | **Components** | `css/components.css` | Assembled parts that need custom CSS: the panel treatments (`.mg-sheet`, `.mg-notecard`, …). |
+| **Themes** | `css/themes.css` | Palette overrides selected by `[data-theme]` on `<html>`: `light` (default), `darkroom`, `blueprint`. |
+
+## Theming
+
+Each theme is only a block of token overrides, so every primitive and
+component follows automatically. `js/theme.js` sets `data-theme` on `<html>`,
+remembers the choice in `localStorage`, and follows the OS setting on first
+visit. Add a switch with buttons carrying `data-theme-set="light|darkroom|blueprint"`.
 
 Components that are just Tailwind class combinations (nav, tags, table, meter)
 are documented as markup patterns in the gallery, not as CSS classes.
@@ -35,6 +43,7 @@ are documented as markup patterns in the gallery, not as CSS classes.
 | `js/filters.js` | Injects the shared SVG filters (`#inkrough`, `#inkroughsoft`, `#inkbreak`). |
 | `js/ink-lines.js` | Redraws borders and rules as hand-drawn ink (rough.js). Tunables in its `CONFIG`. |
 | `js/interactions.js` | Scroll reveal, parallax on floating shapes, letterpress reseed. |
+| `js/theme.js` | Applies/remembers the theme; wires `data-theme-set` buttons. |
 
 ## How to change things
 

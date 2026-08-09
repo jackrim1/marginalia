@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Marginalia — Dark Mode Lab</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="js/tailwind.config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/roughjs@4.6.6/bundled/rough.js"></script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Old+Standard+TT:ital,wght@0,400;0,700;1,400&family=Spectral:ital,wght@0,300;0,400;0,500;0,600;1,400;1,500&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="css/tokens.css" />
+  <link rel="stylesheet" href="css/primitives.css" />
+  <link rel="stylesheet" href="css/components.css" />
+
+  <style>
+    /* ---- lab page chrome ---- */
+    body { background: #dcd7cb; }
+    .lab-wrap { max-width: 1280px; margin: 0 auto; padding: 2rem 1.25rem 4rem; }
+    .lab-cols { display: grid; grid-template-columns: 1fr; gap: 1.5rem; }
+    @media (min-width: 900px) { .lab-cols { grid-template-columns: repeat(3, 1fr); } }
+
+    /* a self-contained sample tile (the real page textures are position:fixed,
+       so the lab uses contained copies that read the same tokens) */
+    .lab-tile {
+      position: relative;
+      overflow: hidden;
+      background: rgb(var(--rgb-paper));
+      border: 1px solid rgba(0,0,0,.15);
+      min-height: 420px;
+    }
+    .lab-grain, .lab-grid { position: absolute; inset: 0; pointer-events: none; z-index: 0; }
+    .lab-grain {
+      opacity: var(--dot-layer-opacity);
+      background-image:
+        radial-gradient(circle, rgb(var(--dot-rgb) / var(--dot-alpha)) 1.3px, transparent 2.4px),
+        radial-gradient(circle, rgb(var(--dot-rgb) / var(--dot-alpha)) 1.3px, transparent 2.4px);
+      background-size: var(--dot-size) var(--dot-size), var(--dot-size) var(--dot-size);
+      background-position: 0 0, calc(var(--dot-size)/2) calc(var(--dot-size)/2);
+    }
+    .lab-grid {
+      background-image:
+        linear-gradient(to right,  rgb(var(--rgb-grid) / var(--grid-alpha)) 1px, transparent 1px),
+        linear-gradient(to bottom, rgb(var(--rgb-grid) / var(--grid-alpha)) 1px, transparent 1px);
+      background-size: var(--grid-substep) var(--grid-substep), var(--grid-substep) var(--grid-substep);
+    }
+
+    /* default grid alpha for light; themes raise it so light lines stay visible */
+    :root { --grid-alpha: .09; }
+
+    /* =========================================================
+       THEME A — WARM DARKROOM
+       ========================================================= */
+    .theme-darkroom {
+      --rgb-paper:   33 31 28;    /* charcoal, not near-black; hint of warmth */
+      --rgb-paper2:  42 39 36;
+      --rgb-panel:   50 46 42;
+      --rgb-ink:     234 228 218;
+      --rgb-faded:   168 160 148;
+      --rgb-rust:    220 102 54;  /* cleaner orange so it doesn't muddy to brown */
+      --rgb-ember:   242 150 82;
+      --rgb-coral:   204 150 122;
+      --rgb-slate:   150 160 178;
+      --rgb-grid:    198 190 172;
+      --rgb-regmark: 210 124 94;
+
+      --dot-rgb: 104 98 90;       /* near-neutral specks, lighter than ground */
+      --dot-alpha: .5;
+      --dot-layer-opacity: .48;
+      --grid-alpha: .10;
+
+      --mg-ink-line-rgb: 234 228 218;
+    }
+
+    /* =========================================================
+       THEME B — CYANOTYPE BLUEPRINT
+       ========================================================= */
+    .theme-blueprint {
+      --rgb-paper:   14 24 44;    /* deeper, indigo-leaning navy (darker + warmer) */
+      --rgb-paper2:  20 32 54;
+      --rgb-panel:   26 40 64;
+      --rgb-ink:     224 226 232; /* near-neutral white, less icy */
+      --rgb-faded:   142 158 184;
+      --rgb-rust:    226 128 80;
+      --rgb-ember:   242 158 94;
+      --rgb-coral:   206 162 138;
+      --rgb-slate:   150 172 202;
+      --rgb-grid:    120 162 206;
+      --rgb-regmark: 220 136 106;
+
+      --dot-rgb: 96 138 192;
+      --dot-alpha: .4;
+      --dot-layer-opacity: .42;
+      --grid-alpha: .13;
+
+      --mg-ink-line-rgb: 224 226 232;
+    }
+
+    /* In dark tiles the halftone "holes" (black dots) vanish, so flip them to
+       light dots so the printed relief still reads on coloured blocks. */
+    .theme-darkroom .mg-halftone,
+    .theme-blueprint .mg-halftone       { background-image: radial-gradient(circle, rgba(255,253,247,.42) 1.1px, transparent 1.4px); }
+    .theme-darkroom .mg-halftone-fine,
+    .theme-blueprint .mg-halftone-fine  { background-image: radial-gradient(circle, rgba(255,253,247,.4)  .9px, transparent 1.2px); }
+    .theme-darkroom .mg-halftone-light,
+    .theme-blueprint .mg-halftone-light { background-image: radial-gradient(circle, rgba(255,253,247,.28) 1px,  transparent 1.3px); }
+
+    .col-label { font-family: var(--font-mono); font-size: 10px; letter-spacing: .22em; text-transform: uppercase; color: #5a5346; }
+  </style>
+</head>
+
+<body class="font-serif antialiased">
+  <div class="lab-wrap">
+    <header class="mb-8">
+      <h1 class="font-display text-3xl mb-1" style="color:#1c1a17">Dark Mode Lab</h1>
+      <p class="font-serif text-sm" style="color:#5a5346;max-width:46rem">
+        Same sample, three themes. Compare how the paper, ink, hand-drawn lines,
+        halftone, and accents translate. Nothing here touches the demo pages.
+      </p>
+    </header>
+
+    <div class="lab-cols">
+      <div class="theme-light">
+        <div class="col-label mb-2">Light · current</div>
+        <div class="lab-tile" data-sample></div>
+      </div>
+      <div class="theme-darkroom">
+        <div class="col-label mb-2" style="color:#7a5a3a">Warm darkroom</div>
+        <div class="lab-tile" data-sample></div>
+      </div>
+      <div class="theme-blueprint">
+        <div class="col-label mb-2" style="color:#3a5a8a">Cyanotype blueprint</div>
+        <div class="lab-tile" data-sample></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- the sample, cloned into each tile -->
+  <template id="sample">
+    <div class="lab-grid"></div>
+    <div class="lab-grain"></div>
+    <div class="relative z-10 p-6">
+      <div class="mg-mono-label mb-3">Vol. IV · No. 27</div>
+      <h2 class="mg-letterpress font-display italic text-4xl text-ink mb-2" data-text="Paper Club">Paper&nbsp;Club</h2>
+      <p class="font-serif text-[15px] leading-relaxed text-ink mb-5">
+        A quiet place to read, mark, and argue with papers.
+      </p>
+      <div class="h-px bg-ink/40 mb-5"></div>
+
+      <div class="mg-sheet p-5">
+        <div class="flex items-baseline gap-3 mb-2">
+          <h3 class="font-display text-xl mg-printed text-ink">Abstract</h3>
+          <div class="flex-1 h-px bg-ink/25"></div>
+          <span class="mg-mono-label">§1</span>
+        </div>
+        <p class="font-serif text-[14px] leading-relaxed text-faded">
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor.
+        </p>
+        <div class="flex items-center gap-4 mt-4">
+          <div class="w-14 h-14 bg-rust mg-halftone"></div>
+          <div class="flex">
+            <div class="w-8 h-8 rounded-full bg-ember mg-halftone-fine"></div>
+            <div class="w-8 h-8 rounded-full bg-ember mg-halftone-fine -ml-3"></div>
+          </div>
+          <span class="mg-mono-label border border-rust text-rust px-2 py-1">to-read</span>
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <script src="js/filters.js"></script>
+  <script>
+    // clone the sample into each tile before ink-lines runs
+    const tpl = document.getElementById('sample').innerHTML;
+    document.querySelectorAll('[data-sample]').forEach((t) => { t.innerHTML = tpl; });
+  </script>
+  <script src="js/ink-lines.js"></script>
+</body>
+</html>

@@ -15,7 +15,7 @@
 .mg-sheet {
   background: rgb(var(--rgb-panel) / var(--panel-alpha));
   border: 1px solid rgb(var(--rgb-ink) / .16);
-  box-shadow: 0 1px 0 rgba(255,255,255,.4) inset, 0 10px 26px -20px rgb(var(--rgb-ink) / .5);
+  box-shadow: 0 1px 0 rgb(255 255 255 / var(--panel-highlight, .4)) inset, 0 10px 26px -20px rgba(0,0,0,.5);
 }
 
 /* B — pressed-in panel, inset shadow like an embossed plate */
@@ -66,6 +66,25 @@
   text-transform: uppercase;
   letter-spacing: 0.2em;
   color: var(--color-faded);
+}
+
+/* ---- Theme switcher buttons ---- */
+.mg-theme-btn {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--color-faded);
+  border: 1px solid rgb(var(--rgb-ink) / .3);
+  padding: 0.25rem 0.55rem;
+  cursor: pointer;
+  transition: color .15s, background .15s, border-color .15s;
+}
+.mg-theme-btn:hover { color: var(--color-rust); border-color: rgb(var(--rgb-rust) / .6); }
+.mg-theme-btn.is-active {
+  background: rgb(var(--rgb-ink));
+  color: rgb(var(--rgb-paper));
+  border-color: rgb(var(--rgb-ink));
 }
 
 /* doc-only comparison label used on the demo page */
