@@ -96,6 +96,7 @@
       <a href="#tokens" class="mg-mono-label border border-ink/30 px-3 py-1.5 hover:text-rust hover:border-rust">01 · Tokens</a>
       <a href="#primitives" class="mg-mono-label border border-ink/30 px-3 py-1.5 hover:text-rust hover:border-rust">02 · Primitives</a>
       <a href="#components" class="mg-mono-label border border-ink/30 px-3 py-1.5 hover:text-rust hover:border-rust">03 · Components</a>
+      <a href="#content" class="mg-mono-label border border-ink/30 px-3 py-1.5 hover:text-rust hover:border-rust">04 · Content &amp; media</a>
     </div>
   </section>
 
@@ -346,8 +347,201 @@
     </div>
   </section>
 
+  <!-- ============================================================= -->
+  <!-- 04 · CONTENT & MEDIA                                           -->
+  <!-- ============================================================= -->
+  <section id="content" class="relative z-10 doc-wrap py-8 pb-24">
+    <div class="flex items-baseline gap-3 mb-2">
+      <span class="mg-mono-label">04</span>
+      <h2 class="doc-h2 mg-printed">Content &amp; media</h2>
+    </div>
+    <p class="font-serif text-faded max-w-2xl mb-6">Richer blocks for a note: figures, equations, media, charts, and code.</p>
+
+    <h3 class="mg-mono-label mb-1">Figure plate <span class="normal-case tracking-normal">(crop-mark frame + caption)</span></h3>
+    <div class="item">
+      <template class="ex">
+<figure class="max-w-lg">
+  <div class="mg-sketch-box relative border border-ink/30 bg-paper2/30 p-6 overflow-hidden">
+    <span class="mg-crop" style="top:6px;left:6px"></span>
+    <span class="mg-crop" style="top:6px;right:6px;transform:scaleX(-1)"></span>
+    <span class="mg-crop" style="bottom:6px;left:6px;transform:scaleY(-1)"></span>
+    <span class="mg-crop" style="bottom:6px;right:6px;transform:scale(-1)"></span>
+    <div class="grid grid-cols-3 gap-4">
+      <div class="aspect-[4/3] bg-slate mg-halftone"></div>
+      <div class="aspect-[4/3] bg-coral mg-halftone"></div>
+      <div class="aspect-[4/3] bg-rust mg-halftone"></div>
+    </div>
+    <div class="grid grid-cols-3 gap-4 mt-3 font-serif text-[11px] italic text-center text-faded">
+      <span>(a) one</span><span>(b) two</span><span>(c) three</span>
+    </div>
+  </div>
+  <figcaption class="mt-3 font-serif text-sm text-faded leading-relaxed">
+    <span class="italic font-semibold text-ink">Figure N.</span> Crop-mark plate with italic sub-labels.
+  </figcaption>
+</figure>
+      </template>
+    </div>
+
+    <h3 class="mg-mono-label mb-1">Numbered equation</h3>
+    <div class="item">
+      <template class="ex">
+<div class="relative py-6 max-w-xl">
+  <p class="text-center font-serif text-[26px] leading-none text-ink">
+    <span class="italic">L</span> = <span class="italic">E</span><sub>t</sub>
+    &#8214; <span class="italic">&#7825;</span><sub>t+1</sub> &minus; <span class="italic">z</span><sub>t+1</sub> &#8214;<sup>2</sup>
+    + <span class="italic">&lambda;</span> &middot; <span class="italic">R</span>(<span class="italic">z</span>)
+  </p>
+  <span class="absolute right-0 top-1/2 -translate-y-1/2 font-mono text-xs text-faded">(1)</span>
+</div>
+      </template>
+    </div>
+
+    <h3 class="mg-mono-label mb-1">Duotone photos <span class="normal-case tracking-normal">(<code class="inline">.mg-duotone</code>, token-driven)</span></h3>
+    <div class="item">
+      <template class="ex">
+<div class="grid grid-cols-3 gap-4 max-w-lg">
+  <div class="mg-duotone aspect-[4/3]" style="--duo-hi:var(--rgb-paper2); --duo-lo:var(--rgb-ink)">
+    <img src="https://picsum.photos/seed/g-a/400/300" alt="" loading="lazy" />
+  </div>
+  <div class="mg-duotone aspect-[4/3]" style="--duo-hi:var(--rgb-paper2); --duo-lo:var(--rgb-rust)">
+    <img src="https://picsum.photos/seed/g-b/400/300" alt="" loading="lazy" />
+  </div>
+  <div class="mg-duotone aspect-[4/3]" style="--duo-hi:var(--rgb-paper2); --duo-lo:var(--rgb-slate)">
+    <img src="https://picsum.photos/seed/g-c/400/300" alt="" loading="lazy" />
+  </div>
+</div>
+      </template>
+    </div>
+
+    <h3 class="mg-mono-label mb-1">Embedded video</h3>
+    <div class="item">
+      <template class="ex">
+<div class="mg-sketch-box relative border border-ink/30 bg-paper2/30 p-3 overflow-hidden max-w-lg">
+  <span class="mg-crop" style="top:6px;left:6px"></span>
+  <span class="mg-crop" style="top:6px;right:6px;transform:scaleX(-1)"></span>
+  <span class="mg-crop" style="bottom:6px;left:6px;transform:scaleY(-1)"></span>
+  <span class="mg-crop" style="bottom:6px;right:6px;transform:scale(-1)"></span>
+  <div class="relative aspect-video overflow-hidden">
+    <video class="w-full h-full object-cover" controls muted loop playsinline poster="https://picsum.photos/seed/g-reel/800/450">
+      <source src="https://mdn.github.io/shared-assets/videos/flower.mp4" type="video/mp4" />
+    </video>
+  </div>
+</div>
+      </template>
+    </div>
+
+    <h3 class="mg-mono-label mb-1">Chart <span class="normal-case tracking-normal">(line + area, re-themes via <code class="inline">currentColor</code>)</span></h3>
+    <div class="item">
+      <template class="ex">
+<div class="max-w-xl">
+  <svg viewBox="0 0 640 240" class="w-full h-auto" font-family="'IBM Plex Mono', monospace">
+    <g class="text-ink" stroke="currentColor" opacity=".12" stroke-width="1">
+      <line x1="40" y1="60" x2="630" y2="60"/><line x1="40" y1="100" x2="630" y2="100"/>
+      <line x1="40" y1="140" x2="630" y2="140"/><line x1="40" y1="180" x2="630" y2="180"/>
+    </g>
+    <g class="text-ink" stroke="currentColor" opacity=".35" stroke-width="1">
+      <line x1="40" y1="30" x2="40" y2="200"/><line x1="40" y1="200" x2="630" y2="200"/>
+    </g>
+    <path class="text-rust" fill="currentColor" fill-opacity=".14" stroke="none"
+      d="M50,200 L50,176 L164,150 L278,141 L392,98 L506,94 L620,44 L620,200 Z"/>
+    <polyline class="text-rust" fill="none" stroke="currentColor" stroke-width="1.5"
+      points="50,176 164,150 278,141 392,98 506,94 620,44"/>
+    <circle class="text-rust" cx="620" cy="44" r="3.5" fill="currentColor"/>
+    <g class="text-faded" fill="currentColor" font-size="10" text-anchor="middle">
+      <text x="50" y="216">Jan</text><text x="240" y="216">Apr</text>
+      <text x="430" y="216">Jul</text><text x="620" y="216">Oct</text>
+    </g>
+  </svg>
+</div>
+      </template>
+    </div>
+
+    <h3 class="mg-mono-label mb-1">Stat tile with sparkline</h3>
+    <div class="item">
+      <template class="ex">
+<div class="mg-sheet p-5 max-w-xs">
+  <div class="mg-mono-label mb-1">Notes filed</div>
+  <div class="font-display text-3xl text-ink leading-none">1,284</div>
+  <svg viewBox="0 0 120 32" class="w-full h-8 mt-3 text-rust" preserveAspectRatio="none">
+    <polyline fill="none" stroke="currentColor" stroke-width="1.5"
+      points="2,26 14,22 26,24 38,16 50,19 62,12 74,15 86,8 98,11 110,5 118,6"/>
+  </svg>
+  <div class="font-mono text-[10px] text-rust mt-2">&#9650; 6.2% this week</div>
+</div>
+      </template>
+    </div>
+
+    <h3 class="mg-mono-label mb-1">Callout / theorem box</h3>
+    <div class="item">
+      <template class="ex">
+<div class="mg-sketch-box relative border border-ink/30 p-6 pt-7 max-w-md">
+  <div class="absolute -top-2 left-4 bg-paper px-2 mg-mono-label z-10">Theorem 1</div>
+  <p class="font-serif text-[16px] leading-relaxed text-ink">
+    <span class="italic font-semibold">No collapse.</span> If the regularizer enforces an
+    isotropic Gaussian on the latents, the encoder cannot map every input to a constant.
+  </p>
+  <p class="mt-3 font-serif text-sm italic text-faded">Proof. See Appendix B. &#9633;</p>
+</div>
+      </template>
+    </div>
+
+    <h3 class="mg-mono-label mb-1">Code — paper listing <span class="normal-case tracking-normal">(ink on paper)</span></h3>
+    <div class="item">
+      <template class="ex">
+<div class="mg-sketch-box relative border border-ink/30 bg-paper2/30 p-5 overflow-hidden max-w-lg">
+<span class="mg-crop" style="top:6px;left:6px"></span>
+<span class="mg-crop" style="top:6px;right:6px;transform:scaleX(-1)"></span>
+<span class="mg-crop" style="bottom:6px;left:6px;transform:scaleY(-1)"></span>
+<span class="mg-crop" style="bottom:6px;right:6px;transform:scale(-1)"></span>
+<pre class="font-mono text-[12px] leading-relaxed text-ink overflow-x-auto"><code>z     = encoder(frame)
+z_hat = predictor(z, action)
+loss  = mse(z_hat, target)</code></pre>
+</div>
+      </template>
+    </div>
+
+    <h3 class="mg-mono-label mb-1">Code — editor panel <span class="normal-case tracking-normal">(<code class="inline">.mg-code</code>)</span></h3>
+    <div class="item">
+      <template class="ex">
+<div class="mg-code max-w-lg">
+<div class="mg-code__bar">
+<span class="mg-code__dot" style="background:#cf6a3a"></span>
+<span class="mg-code__dot" style="background:#e59a5f"></span>
+<span class="mg-code__dot" style="background:#8f98ad"></span>
+<span class="mg-code__name">train.py</span>
+</div>
+<pre><code><span class="tok-com"># two-term objective</span>
+<span class="tok-key">def</span> <span class="tok-fn">step</span>(x, target):
+    loss = <span class="tok-fn">mse</span>(<span class="tok-fn">model</span>(x), target)
+    loss += <span class="tok-num">lam</span> * <span class="tok-fn">sigreg</span>(x)
+    <span class="tok-key">return</span> loss</code></pre>
+</div>
+      </template>
+    </div>
+
+    <h3 class="mg-mono-label mb-1">Code — terminal &amp; diff</h3>
+    <div class="item">
+      <template class="ex">
+<div class="space-y-4 max-w-lg">
+<div class="mg-code">
+<div class="mg-code__bar"><span class="mg-code__dot" style="background:#cf6a3a"></span><span class="mg-code__dot" style="background:#e59a5f"></span><span class="mg-code__dot" style="background:#8f98ad"></span><span class="mg-code__name">bash</span></div>
+<pre><code><span class="tok-num">$</span> python train.py --steps 10000
+<span class="tok-com">[00:12] step 10000  loss 0.041</span>
+<span class="tok-str">&#10003; done</span></code></pre>
+</div>
+<div class="mg-code">
+<div class="mg-code__bar"><span class="mg-code__dot" style="background:#cf6a3a"></span><span class="mg-code__dot" style="background:#e59a5f"></span><span class="mg-code__dot" style="background:#8f98ad"></span><span class="mg-code__name">loss.py · diff</span></div>
+<pre><code><span class="del">- loss = a*p + b*e + c*m   # many terms</span>
+<span class="add">+ loss = mse(pred, target) # one term</span>
+  loss.backward()</code></pre>
+</div>
+</div>
+      </template>
+    </div>
+  </section>
+
   <footer class="relative z-10 doc-wrap border-t border-ink/30 py-8 mb-6">
-    <p class="mg-mono-label">Marginalia design system · tokens → primitives → components · © MMXXVI</p>
+    <p class="mg-mono-label">Marginalia design system · tokens → primitives → components → themes · © MMXXVI</p>
   </footer>
 
   <!-- ---- system scripts ---- -->
