@@ -8,6 +8,9 @@
   <!-- Tailwind (CDN, config inline) -->
   <script src="https://cdn.tailwindcss.com"></script>
 
+  <!-- rough.js — hand-drawn line/box rendering -->
+  <script src="https://cdn.jsdelivr.net/npm/roughjs@4.6.6/bundled/rough.js"></script>
+
   <!-- Academic serif + technical mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -348,8 +351,8 @@
     <!-- ----------------- SIDE COLUMN ----------------- -->
     <aside class="lg:sticky lg:top-8 self-start space-y-8" data-reveal>
       <!-- contents card -->
-      <div class="border border-ink/25 bg-paper2/40 relative">
-        <div class="absolute -top-2 left-4 bg-paper px-2 font-mono text-[10px] uppercase tracking-[0.2em] text-faded">Contents</div>
+      <div class="sketch-box border border-ink/25 bg-paper2/40 relative">
+        <div class="absolute -top-2 left-4 bg-paper px-2 font-mono text-[10px] uppercase tracking-[0.2em] text-faded z-10">Contents</div>
         <ol class="p-5 pt-6 space-y-3 font-serif text-sm">
           <li class="flex justify-between items-baseline group cursor-pointer">
             <a class="group-hover:text-rust transition-colors">§1 &nbsp;Abstract</a>
@@ -392,8 +395,8 @@
       </div>
 
       <!-- mini halftone plate -->
-      <div class="relative border border-ink/25 p-3">
-        <div class="absolute -top-2 left-4 bg-paper px-2 font-mono text-[10px] uppercase tracking-[0.2em] text-faded">Plate&nbsp;A</div>
+      <div class="sketch-box relative border border-ink/25 p-3">
+        <div class="absolute -top-2 left-4 bg-paper px-2 font-mono text-[10px] uppercase tracking-[0.2em] text-faded z-10">Plate&nbsp;A</div>
         <div class="grid grid-cols-2 gap-2 pt-2">
           <div class="aspect-square bg-slate/70 halftone"></div>
           <div class="aspect-square bg-coral/70 halftone"></div>
@@ -442,7 +445,7 @@
 
       <!-- Figure with technical plate -->
       <figure data-reveal>
-        <div class="relative border border-ink/30 bg-paper2/30 p-6 overflow-hidden">
+        <div class="sketch-box relative border border-ink/30 bg-paper2/30 p-6 overflow-hidden">
           <span class="crop" style="top:6px;left:6px"></span>
           <span class="crop" style="top:6px;right:6px;transform:scaleX(-1)"></span>
           <span class="crop" style="bottom:6px;left:6px;transform:scaleY(-1)"></span>
@@ -662,6 +665,103 @@
       const b = (0.010 + Math.random() * 0.006).toFixed(4);
       f.setAttribute('baseFrequency', b + ' ' + (0.018 + Math.random() * 0.006).toFixed(4));
     }
+  </script>
+
+  <!-- ---------- hand-drawn lines & boxes (rough.js) ---------- -->
+  <script>
+  (function () {
+    const SVGNS = 'http://www.w3.org/2000/svg';
+    const seed = (i) => Math.floor(((i + 1) * 2654435761) % 100000);
+
+    function overlay(w, h) {
+      const s = document.createElementNS(SVGNS, 'svg');
+      s.setAttribute('width', w);
+      s.setAttribute('height', h);
+      s.setAttribute('data-rough', '');
+      s.style.cssText = 'position:absolute;left:0;top:0;overflow:visible;pointer-events:none;z-index:1';
+      return s;
+    }
+    function host(el) {
+      if (getComputedStyle(el).position === 'static') el.style.position = 'relative';
+    }
+
+    // Build a linear gradient of the ink colour whose OPACITY wanders along
+    // the stroke — so the line looks darker in some places, fainter in others,
+    // like ink that didn't lay down evenly. Returns the gradient id.
+    let gid = 0;
+    function inkGradient(svg, diagonal, baseAlpha) {
+      const id = 'ink-grad-' + (gid++);
+      let defs = svg.querySelector('defs');
+      if (!defs) { defs = document.createElementNS(SVGNS, 'defs'); svg.appendChild(defs); }
+      const g = document.createElementNS(SVGNS, 'linearGradient');
+      g.setAttribute('id', id);
+      g.setAttribute('x1', '0'); g.setAttribute('y1', '0');
+      g.setAttribute('x2', '1'); g.setAttribute('y2', diagonal ? '1' : '0');
+      const stops = 5 + Math.floor(Math.random() * 3);
+      for (let i = 0; i < stops; i++) {
+        const s = document.createElementNS(SVGNS, 'stop');
+        s.setAttribute('offset', ((i / (stops - 1)) * 100).toFixed(1) + '%');
+        s.setAttribute('stop-color', 'rgb(28,26,23)');
+        // opacity drifts gently around the base value
+        const a = baseAlpha * (0.75 + Math.random() * 0.5);
+        s.setAttribute('stop-opacity', Math.max(0.2, Math.min(0.72, a)).toFixed(3));
+        g.appendChild(s);
+      }
+      defs.appendChild(g);
+      return id;
+    }
+
+    function paint(node, id) {
+      node.querySelectorAll('path').forEach((p) => p.setAttribute('stroke', 'url(#' + id + ')'));
+    }
+
+    function draw() {
+      if (!window.rough) return;
+      document.querySelectorAll('[data-rough]').forEach((s) => s.remove());
+
+      // --- boxes: single hand-drawn frame, opacity varying around the frame ---
+      document.querySelectorAll('.sheet, .notecard, .sketch-box').forEach((el, i) => {
+        const w = el.clientWidth, h = el.clientHeight;
+        if (!w || !h) return;
+        host(el);
+        const svg = overlay(w, h);
+        const rc = rough.svg(svg);
+        const id = inkGradient(svg, true, 0.55);
+        const node = rc.rectangle(2, 2, w - 4, h - 4, {
+          roughness: 0.6, bowing: 0.4, strokeWidth: 0.75, seed: seed(i),
+        });
+        paint(node, id);
+        svg.appendChild(node);
+        el.appendChild(svg);
+        el.style.borderColor = 'transparent';   // hide the straight border
+      });
+
+      // --- horizontal rules: single line, opacity varying along its length ---
+      document.querySelectorAll('.h-px').forEach((el, i) => {
+        const w = el.clientWidth;
+        if (!w) return;
+        host(el);
+        const H = 12, y = H / 2;
+        const svg = overlay(w, H);
+        svg.style.top = -(H / 2) + 'px';
+        const rc = rough.svg(svg);
+        const id = inkGradient(svg, false, 0.55);
+        const node = rc.line(1, y, w - 1, y, {
+          roughness: 0.5, bowing: 0.5, strokeWidth: 0.75, seed: seed(i + 900),
+        });
+        paint(node, id);
+        svg.appendChild(node);
+        el.appendChild(svg);
+        el.style.background = 'transparent';     // hide the straight rule
+      });
+    }
+
+    let t;
+    const schedule = () => { clearTimeout(t); t = setTimeout(draw, 120); };
+    window.addEventListener('load', () => setTimeout(draw, 60));
+    window.addEventListener('resize', schedule);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => setTimeout(draw, 60));
+  })();
   </script>
 </body>
 </html>
