@@ -44,7 +44,11 @@
     body {
       background-color: #ece7db;
       color: #1c1a17;
+      letter-spacing: -0.015em;
     }
+    /* pull display headings in tighter than body */
+    .font-display { letter-spacing: -0.03em; }
+    .font-serif   { letter-spacing: -0.012em; }
 
     /* Dotted "bumps": a raised highlight dot + offset shadow dot per cell,
        so the sheet reads like embossed / stippled paper relief. Kept subtle
@@ -55,10 +59,10 @@
       inset: 0;
       pointer-events: none;
       z-index: 0;
-      opacity: .9;
+      opacity: .55;
       background-image:
-        radial-gradient(circle, rgba(255,253,247,.9) 1.3px, transparent 2.4px),
-        radial-gradient(circle, rgba(255,253,247,.9) 1.3px, transparent 2.4px);
+        radial-gradient(circle, rgba(250,246,238,.6) 1.3px, transparent 2.4px),
+        radial-gradient(circle, rgba(250,246,238,.6) 1.3px, transparent 2.4px);
       background-size: 9px 9px, 9px 9px;
       background-position: 0 0, 4.5px 4.5px;
     }
@@ -167,6 +171,66 @@
     /* thin double rule used under headings in old papers */
     .rule-double { border-top: 3px double #2a2723; }
 
+    /* ---------- readable panels over the dotted sheet ----------
+       Each mutes the light dots behind the text differently, so text
+       stays legible while keeping a paper feel. */
+
+    /* A: clean opaque card, hairline border + soft drop */
+    .sheet {
+      background: rgba(238,233,222,.72);
+      border: 1px solid rgba(28,26,23,.16);
+      box-shadow: 0 1px 0 rgba(255,255,255,.4) inset, 0 10px 26px -20px rgba(28,26,23,.5);
+    }
+
+    /* B: pressed-in panel, inset shadow like an embossed plate */
+    .sheet-inset {
+      background: rgba(240,235,224,.74);
+      box-shadow:
+        inset 0 0 0 1px rgba(28,26,23,.12),
+        inset 0 3px 12px rgba(120,104,78,.14);
+    }
+
+    /* C: borderless halo — feathered paper pad, no hard edge */
+    .sheet-soft {
+      background: rgba(238,233,222,.64);
+      box-shadow: 0 0 0 14px rgba(238,233,222,.4);
+      border-radius: 2px;
+    }
+
+    /* D: ruled index-card, red margin rule + faint horizontal lines */
+    .notecard {
+      position: relative;
+      background: rgba(240,235,224,.76);
+      border: 1px solid rgba(28,26,23,.15);
+    }
+    .notecard::before {
+      content: "";
+      position: absolute;
+      top: 0; bottom: 0; left: 52px;
+      width: 1px;
+      background: rgba(192,83,42,.4);
+    }
+    .notecard .line { border-bottom: 1px solid rgba(28,26,23,.10); }
+
+    /* E: per-line highlighter — paper sits behind the words only */
+    .text-halo {
+      display: inline;
+      background: rgba(240,235,224,.66);
+      box-decoration-break: clone;
+      -webkit-box-decoration-break: clone;
+      padding: 0.12em 0.28em;
+      box-shadow: 0 0 0 1px rgba(240,235,224,.66);
+    }
+
+    /* little comparison label so we can talk about each treatment */
+    .variant-tag {
+      font-family: '"IBM Plex Mono"', monospace;
+      font-size: 9px;
+      letter-spacing: .22em;
+      text-transform: uppercase;
+      color: #8a8070;
+    }
+
     ::selection { background: rgba(230,116,43,.28); }
   </style>
 </head>
@@ -267,11 +331,12 @@
       Paper&nbsp;Club
     </h1>
 
-    <p class="mt-6 max-w-2xl font-serif text-lg text-faded leading-relaxed anim-rise" style="animation-delay:.2s">
-      A quiet place to read, mark, and argue with papers. Notes set like a
+    <p class="mt-6 max-w-2xl anim-rise leading-loose" style="animation-delay:.2s">
+      <span class="text-halo font-serif text-lg text-ink">A quiet place to read, mark, and argue with papers. Notes set like a
       1960s preprint — ruled margins, halftone plates, and ink that never quite
-      lands square on the page.
+      lands square on the page.</span>
     </p>
+    <span class="variant-tag block mt-2">treatment&nbsp;E · per-line halo</span>
 
     <!-- animated underscore rule -->
     <div class="mt-8 h-px bg-ink/40 anim-drawX" style="animation-delay:.4s"></div>
@@ -341,26 +406,29 @@
     <!-- ----------------- MAIN CONTENT ----------------- -->
     <article class="space-y-14 max-w-3xl">
 
-      <!-- Abstract block -->
+      <!-- Abstract block — TREATMENT A: clean opaque card -->
       <section data-reveal>
-        <div class="flex items-baseline gap-3 mb-3">
-          <h2 class="font-display text-2xl printed">Abstract</h2>
-          <div class="flex-1 h-px bg-ink/25"></div>
-          <span class="font-mono text-[10px] text-faded">§1</span>
+        <span class="variant-tag block mb-2">treatment&nbsp;A · card</span>
+        <div class="sheet p-7">
+          <div class="flex items-baseline gap-3 mb-3">
+            <h2 class="font-display text-2xl printed">Abstract</h2>
+            <div class="flex-1 h-px bg-ink/25"></div>
+            <span class="font-mono text-[10px] text-faded">§1</span>
+          </div>
+          <p class="font-serif text-[17px] leading-[1.8] text-ink first-letter:font-display first-letter:text-6xl first-letter:float-left first-letter:mr-3 first-letter:leading-[0.8] first-letter:text-rust">
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod
+            tempor incididunt ut labore et dolore magna aliqua. These notes offer a
+            compelling framework for reading in compact groups, yet existing methods
+            remain fragile, relying on complex multi-term arguments and pre-formed
+            opinions to avoid conversational collapse.
+          </p>
+          <p class="font-serif text-[17px] leading-[1.8] text-ink mt-4">
+            In this work we introduce a marginalia model that annotates stably
+            end-to-end from raw pages, using only two note types: a highlight and a
+            question. This reduces tunable disagreement from six terms to one,
+            <span class="bg-ember/70 halftone-fine px-1 text-ink">while remaining competitive across diverse reading tasks.</span>
+          </p>
         </div>
-        <p class="font-serif text-[17px] leading-[1.8] text-ink first-letter:font-display first-letter:text-6xl first-letter:float-left first-letter:mr-3 first-letter:leading-[0.8] first-letter:text-rust">
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod
-          tempor incididunt ut labore et dolore magna aliqua. These notes offer a
-          compelling framework for reading in compact groups, yet existing methods
-          remain fragile, relying on complex multi-term arguments and pre-formed
-          opinions to avoid conversational collapse.
-        </p>
-        <p class="font-serif text-[17px] leading-[1.8] text-ink mt-4">
-          In this work we introduce a marginalia model that annotates stably
-          end-to-end from raw pages, using only two note types: a highlight and a
-          question. This reduces tunable disagreement from six terms to one,
-          <span class="bg-ember/70 halftone-fine px-1 text-ink">while remaining competitive across diverse reading tasks.</span>
-        </p>
       </section>
 
       <!-- Callout / marginal note -->
@@ -404,7 +472,7 @@
 
       <!-- Two-up card row: components -->
       <section class="grid sm:grid-cols-2 gap-6" data-reveal>
-        <div class="relative border border-ink/25 p-5 bg-paper2/30 hover:border-rust transition-colors group">
+        <div class="sheet relative p-5 hover:border-rust transition-colors group">
           <div class="w-10 h-10 mb-4 bg-rust halftone group-hover:scale-105 transition-transform"></div>
           <h3 class="font-display text-xl mb-2 printed">Highlight</h3>
           <p class="font-serif text-sm leading-relaxed text-faded">
@@ -412,7 +480,7 @@
             it files itself under the right label automatically.
           </p>
         </div>
-        <div class="relative border border-ink/25 p-5 bg-paper2/30 hover:border-rust transition-colors group">
+        <div class="sheet relative p-5 hover:border-rust transition-colors group">
           <div class="w-10 h-10 mb-4 bg-slate halftone group-hover:scale-105 transition-transform"></div>
           <h3 class="font-display text-xl mb-2 printed">Cross-reference</h3>
           <p class="font-serif text-sm leading-relaxed text-faded">
@@ -422,25 +490,91 @@
         </div>
       </section>
 
-      <!-- Method with numbered steps -->
+      <!-- Method with numbered steps — TREATMENT B: pressed-in inset panel -->
       <section data-reveal>
-        <div class="flex items-baseline gap-3 mb-4">
-          <h2 class="font-display text-2xl printed">Method</h2>
-          <div class="flex-1 h-px bg-ink/25"></div>
-          <span class="font-mono text-[10px] text-faded">§2</span>
+        <span class="variant-tag block mb-2">treatment&nbsp;B · inset plate</span>
+        <div class="sheet-inset p-7">
+          <div class="flex items-baseline gap-3 mb-4">
+            <h2 class="font-display text-2xl printed">Method</h2>
+            <div class="flex-1 h-px bg-ink/25"></div>
+            <span class="font-mono text-[10px] text-faded">§2</span>
+          </div>
+          <ol class="space-y-4">
+            <li class="flex gap-4">
+              <span class="font-display text-2xl text-rust leading-none w-8 shrink-0">01</span>
+              <p class="font-serif text-[16px] leading-relaxed">Excepteur sint occaecat cupidatat non proident — capture the raw page as an immutable plate.</p>
+            </li>
+            <li class="flex gap-4">
+              <span class="font-display text-2xl text-rust leading-none w-8 shrink-0">02</span>
+              <p class="font-serif text-[16px] leading-relaxed">Sunt in culpa qui officia deserunt — project every highlight onto a shared margin.</p>
+            </li>
+            <li class="flex gap-4">
+              <span class="font-display text-2xl text-rust leading-none w-8 shrink-0">03</span>
+              <p class="font-serif text-[16px] leading-relaxed">Mollit anim id est laborum — aggregate the marginalia to encourage an isotropic understanding.</p>
+            </li>
+          </ol>
         </div>
-        <ol class="space-y-4">
-          <li class="flex gap-4">
-            <span class="font-display text-2xl text-rust leading-none w-8 shrink-0">01</span>
-            <p class="font-serif text-[16px] leading-relaxed">Excepteur sint occaecat cupidatat non proident — capture the raw page as an immutable plate.</p>
+      </section>
+
+      <!-- NEW: Definitions — TREATMENT D: ruled index-card w/ red margin rule -->
+      <section data-reveal>
+        <span class="variant-tag block mb-2">treatment&nbsp;D · ruled notecard</span>
+        <div class="notecard p-6 pl-16">
+          <div class="flex items-baseline gap-3 mb-4">
+            <h2 class="font-display text-2xl printed">Definitions</h2>
+            <div class="flex-1 h-px bg-ink/20"></div>
+            <span class="font-mono text-[10px] text-faded">gloss.</span>
+          </div>
+          <dl class="font-serif text-[16px]">
+            <div class="line py-3">
+              <dt class="font-semibold inline">Margin.</dt>
+              <dd class="inline text-faded"> The blank column where the reader answers back; lorem ipsum dolor sit amet.</dd>
+            </div>
+            <div class="line py-3">
+              <dt class="font-semibold inline">Plate.</dt>
+              <dd class="inline text-faded"> An immutable capture of a page, consectetur adipiscing elit sed do.</dd>
+            </div>
+            <div class="line py-3">
+              <dt class="font-semibold inline">Halftone.</dt>
+              <dd class="inline text-faded"> Continuous tone rendered as dots; eiusmod tempor incididunt ut labore.</dd>
+            </div>
+            <div class="py-3">
+              <dt class="font-semibold inline">Registration.</dt>
+              <dd class="inline text-faded"> The alignment of ink layers; ut enim ad minim veniam quis nostrud.</dd>
+            </div>
+          </dl>
+        </div>
+      </section>
+
+      <!-- NEW: Reading log — TREATMENT C: borderless soft halo entries -->
+      <section data-reveal>
+        <span class="variant-tag block mb-2">treatment&nbsp;C · soft halo</span>
+        <div class="flex items-baseline gap-3 mb-6">
+          <h2 class="font-display text-2xl printed">Reading&nbsp;Log</h2>
+          <div class="flex-1 h-px bg-ink/25"></div>
+          <span class="font-mono text-[10px] text-faded">§3</span>
+        </div>
+        <ol class="space-y-8 border-l border-ink/20 pl-6 ml-2">
+          <li class="relative">
+            <span class="absolute -left-[31px] top-1 w-3 h-3 rounded-full bg-rust halftone-fine"></span>
+            <div class="sheet-soft inline-block">
+              <span class="font-mono text-[10px] text-faded block mb-1">14 : 03 · today</span>
+              <p class="font-serif text-[16px] leading-relaxed">Flagged the abstract's claim on hyperparameters. Duis aute irure dolor in reprehenderit voluptate.</p>
+            </div>
           </li>
-          <li class="flex gap-4">
-            <span class="font-display text-2xl text-rust leading-none w-8 shrink-0">02</span>
-            <p class="font-serif text-[16px] leading-relaxed">Sunt in culpa qui officia deserunt — project every highlight onto a shared margin.</p>
+          <li class="relative">
+            <span class="absolute -left-[31px] top-1 w-3 h-3 rounded-full bg-slate halftone-fine"></span>
+            <div class="sheet-soft inline-block">
+              <span class="font-mono text-[10px] text-faded block mb-1">11 : 47 · today</span>
+              <p class="font-serif text-[16px] leading-relaxed">Cross-referenced Figure 1 with last week's note on double descent. Excepteur sint occaecat.</p>
+            </div>
           </li>
-          <li class="flex gap-4">
-            <span class="font-display text-2xl text-rust leading-none w-8 shrink-0">03</span>
-            <p class="font-serif text-[16px] leading-relaxed">Mollit anim id est laborum — aggregate the marginalia to encourage an isotropic understanding.</p>
+          <li class="relative">
+            <span class="absolute -left-[31px] top-1 w-3 h-3 rounded-full bg-ember halftone-fine"></span>
+            <div class="sheet-soft inline-block">
+              <span class="font-mono text-[10px] text-faded block mb-1">yesterday</span>
+              <p class="font-serif text-[16px] leading-relaxed">Opened the paper. First pass, no marks yet. Sed ut perspiciatis unde omnis iste natus.</p>
+            </div>
           </li>
         </ol>
       </section>
@@ -452,7 +586,7 @@
           <div class="flex-1 h-px bg-ink/25"></div>
           <span class="font-mono text-[10px] text-faded">tbl.1</span>
         </div>
-        <div class="overflow-x-auto border border-ink/30">
+        <div class="sheet overflow-x-auto">
           <table class="w-full font-serif text-sm">
             <thead>
               <tr class="rule-double bg-paper2/50 font-display text-left">
