@@ -250,6 +250,28 @@
       <feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="2" result="noise"/>
       <feDisplacementMap in="SourceGraphic" in2="noise" scale="1.1"/>
     </filter>
+
+    <!-- ink breakup for drawn lines: roughen the edge, then erode small
+         flecks out of the stroke so it reads like uneven ink on textured paper -->
+    <filter id="inkbreak" x="-5%" y="-400%" width="110%" height="900%">
+      <!-- 1. nudge the edge so it isn't a perfect vector line -->
+      <feTurbulence type="fractalNoise" baseFrequency="0.9 0.7" numOctaves="2" seed="7" result="warp"/>
+      <feDisplacementMap in="SourceGraphic" in2="warp" scale="1.0"
+                         xChannelSelector="R" yChannelSelector="G" result="edged"/>
+      <!-- 2. build a speckle mask from coarse noise -->
+      <feTurbulence type="fractalNoise" baseFrequency="0.34" numOctaves="2" seed="4" result="speck"/>
+      <feColorMatrix in="speck" type="matrix"
+        values="0 0 0 0 0
+                0 0 0 0 0
+                0 0 0 0 0
+                1 0 0 0 0" result="speckA"/>
+      <!-- keep most of the stroke; only the lowest slice drops out -->
+      <feComponentTransfer in="speckA" result="mask">
+        <feFuncA type="discrete" tableValues="0 1 1 1 1 1 1 1"/>
+      </feComponentTransfer>
+      <!-- 3. knock the flecks out of the roughened stroke -->
+      <feComposite in="edged" in2="mask" operator="in"/>
+    </filter>
   </svg>
 
   <!-- faint global drafting grid, fixed behind everything -->
@@ -728,8 +750,9 @@
         const rc = rough.svg(svg);
         const id = inkGradient(svg, true, 0.55);
         const node = rc.rectangle(2, 2, w - 4, h - 4, {
-          roughness: 0.6, bowing: 0.4, strokeWidth: 0.75, seed: seed(i),
+          roughness: 0.6, bowing: 0.4, strokeWidth: 0.9, seed: seed(i),
         });
+        node.setAttribute('filter', 'url(#inkbreak)');
         paint(node, id);
         svg.appendChild(node);
         el.appendChild(svg);
@@ -747,8 +770,9 @@
         const rc = rough.svg(svg);
         const id = inkGradient(svg, false, 0.55);
         const node = rc.line(1, y, w - 1, y, {
-          roughness: 0.5, bowing: 0.5, strokeWidth: 0.75, seed: seed(i + 900),
+          roughness: 0.5, bowing: 0.5, strokeWidth: 0.9, seed: seed(i + 900),
         });
+        node.setAttribute('filter', 'url(#inkbreak)');
         paint(node, id);
         svg.appendChild(node);
         el.appendChild(svg);
