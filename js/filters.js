@@ -14,6 +14,11 @@
         <feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="2" result="noise"/>
         <feDisplacementMap in="SourceGraphic" in2="noise" scale="1.1"/>
       </filter>
+      <!-- even fainter wobble, for small text like code -->
+      <filter id="inkfaint">
+        <feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="2" result="noise"/>
+        <feDisplacementMap in="SourceGraphic" in2="noise" scale="0.55"/>
+      </filter>
       <!-- roughen the edge, then erode small flecks out of the stroke -->
       <filter id="inkbreak" x="-5%" y="-400%" width="110%" height="900%">
         <feTurbulence type="fractalNoise" baseFrequency="0.9 0.7" numOctaves="2" seed="7" result="warp"/>

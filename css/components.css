@@ -68,6 +68,67 @@
   color: var(--color-faded);
 }
 
+/* ---- Media: duotone photo treatment ----
+   Remaps a grayscale image to two tones (highlight + shadow). Set the pair with
+   --duo-hi / --duo-lo (default: paper highlights, ink shadows). Re-themes. */
+.mg-duotone {
+  position: relative;
+  overflow: hidden;
+  background: rgb(var(--duo-hi, var(--rgb-paper2)));
+}
+.mg-duotone > img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: grayscale(1) contrast(1.08);
+  mix-blend-mode: multiply;
+}
+.mg-duotone::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgb(var(--duo-lo, var(--rgb-ink)));
+  mix-blend-mode: lighten;
+  pointer-events: none;
+}
+
+/* ---- Code block (dark editor/terminal panel) ----
+   A code readout keeps a fixed dark panel and its own syntax palette in every
+   theme, the same way the gallery shows snippets. */
+.mg-code {
+  background: #191510;
+  border: 1px solid rgba(0,0,0,.45);
+  color: #d8cfbf;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.45;
+  overflow: hidden;
+}
+.mg-code__bar {
+  display: flex; align-items: center; gap: .45rem;
+  padding: .5rem .8rem;
+  background: #221d16;
+  border-bottom: 1px solid rgba(255,255,255,.06);
+}
+.mg-code__dot { width: .58rem; height: .58rem; border-radius: 9999px; }
+.mg-code__name { margin-left: .4rem; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: #8a8172; }
+.mg-code pre {
+  margin: 0; padding: .9rem 1.1rem; overflow-x: auto;
+  filter: url(#inkfaint);              /* faint ink wobble, like printed text */
+  text-shadow: 0 0 .4px rgba(216,207,191,.35);
+}
+.mg-code .ln { color: #5f5747; user-select: none; display: inline-block; width: 1.4rem; text-align: right; margin-right: 1rem; }
+
+.mg-code .tok-com  { color: #8a8172; font-style: italic; }
+.mg-code .tok-key  { color: #e0864e; }
+.mg-code .tok-str  { color: #cbab6c; }
+.mg-code .tok-fn   { color: #eaa46e; }
+.mg-code .tok-num  { color: #cf8f77; }
+.mg-code .tok-punc { color: #a89b86; }
+.mg-code .add { display: block; background: rgba(122,150,86,.16); color: #b7c58f; }
+.mg-code .del { display: block; background: rgba(200,96,64,.14); color: #d79a7e; }
+
 /* ---- Theme switcher buttons ---- */
 .mg-theme-btn {
   font-family: var(--font-mono);
