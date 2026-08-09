@@ -1,0 +1,133 @@
+/* ============================================================================
+   PRIMITIVES — the material.
+   These are the paper, the ink, and the print process. They are not "a card"
+   or "a button"; they are the textures and effects that components are built
+   from. Everything here reads its values from tokens.css.
+   ========================================================================== */
+
+/* ---- Base typography ---- */
+body {
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+  letter-spacing: var(--tracking-body);
+}
+.font-display { letter-spacing: var(--tracking-display); }
+.font-serif   { letter-spacing: var(--tracking-serif); }
+
+::selection { background: rgb(var(--rgb-ember) / .28); }
+
+
+/* ---- Paper substrate: stippled "dotted bumps" over the whole mg-sheet ---- */
+.mg-paper-grain::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: var(--dot-layer-opacity);
+  background-image:
+    radial-gradient(circle, rgb(var(--dot-rgb) / var(--dot-alpha)) 1.3px, transparent 2.4px),
+    radial-gradient(circle, rgb(var(--dot-rgb) / var(--dot-alpha)) 1.3px, transparent 2.4px);
+  background-size: var(--dot-size) var(--dot-size), var(--dot-size) var(--dot-size);
+  background-position: 0 0, calc(var(--dot-size) / 2) calc(var(--dot-size) / 2);
+}
+/* warm blotch so the mg-sheet never reads flat */
+.mg-paper-grain::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(120% 90% at 15% 8%, rgba(214,196,160,.35), transparent 55%),
+    radial-gradient(120% 90% at 90% 95%, rgba(150,120,90,.18), transparent 50%);
+  mix-blend-mode: multiply;
+}
+
+
+/* ---- Technical drawing grid ---- */
+.mg-drafting-grid {
+  background-image:
+    linear-gradient(to right,  rgb(var(--rgb-grid) / .10)  1px, transparent 1px),
+    linear-gradient(to bottom, rgb(var(--rgb-grid) / .10)  1px, transparent 1px),
+    linear-gradient(to right,  rgb(var(--rgb-grid) / .045) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(var(--rgb-grid) / .045) 1px, transparent 1px);
+  background-size:
+    var(--grid-step) var(--grid-step),
+    var(--grid-step) var(--grid-step),
+    var(--grid-substep) var(--grid-substep),
+    var(--grid-substep) var(--grid-substep);
+}
+
+/* faint red registration guides drawn across the mg-sheet */
+.mg-reg-guides {
+  background-image:
+    linear-gradient(to right,  rgb(var(--rgb-regmark) / .28) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(var(--rgb-regmark) / .28) 1px, transparent 1px);
+  background-size: 100% 100%;
+  background-position: 22% 0, 0 30%;
+  background-repeat: no-repeat;
+}
+
+
+/* ---- Halftone dot fills (put on a coloured block for mg-printed relief) ---- */
+.mg-halftone       { background-image: radial-gradient(circle, rgba(0,0,0,.55) 1.1px, transparent 1.4px); background-size: 5px 5px; }
+.mg-halftone-fine  { background-image: radial-gradient(circle, rgba(0,0,0,.5)   .9px, transparent 1.2px); background-size: 4px 4px; }
+.mg-halftone-light { background-image: radial-gradient(circle, rgba(0,0,0,.28)  1px,  transparent 1.3px); background-size: 6px 6px; }
+
+
+/* ---- Letterpress / distressed ink text ----
+   Uses SVG filters injected by js/filters.js (#inkrough, #inkroughsoft).
+   Put the same text in a data-text="" attribute for the ink-breakup layer. */
+.mg-letterpress {
+  position: relative;
+  filter: url(#inkrough);
+}
+.mg-letterpress::after {
+  content: attr(data-text);
+  position: absolute;
+  inset: 0;
+  color: var(--color-paper);
+  mix-blend-mode: screen;
+  opacity: .35;
+  background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='m'><feTurbulence type='fractalNoise' baseFrequency='0.35' numOctaves='3'/></filter><rect width='100%25' height='100%25' filter='url(%23m)'/></svg>");
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  pointer-events: none;
+}
+.mg-printed {
+  text-shadow: 0 0 .5px rgb(var(--rgb-ink) / .5);
+  filter: url(#inkroughsoft);
+}
+
+
+/* ---- Crop / corner marks ---- */
+.mg-crop { position: absolute; width: 18px; height: 18px; opacity: .5; }
+.mg-crop::before, .mg-crop::after { content: ""; position: absolute; background: #5a5346; }
+.mg-crop::before { width: 18px; height: 1px;  top: 0; }
+.mg-crop::after  { width: 1px;  height: 18px; left: 0; }
+
+/* thin double rule, as under headings in old papers */
+.mg-rule-double { border-top: 3px double #2a2723; }
+
+
+/* ---- Entrance animations ---- */
+@keyframes drawX  { from { transform: scaleX(0); opacity: 0; } to { transform: scaleX(1); opacity: 1; } }
+@keyframes drawY  { from { transform: scaleY(0); opacity: 0; } to { transform: scaleY(1); opacity: 1; } }
+@keyframes riseIn { from { transform: translateY(14px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+@keyframes inkSettle {
+  0%   { opacity: 0; filter: blur(6px); letter-spacing: .12em; }
+  60%  { opacity: 1; filter: blur(0);   letter-spacing: .01em; }
+  100% { opacity: 1; filter: blur(0);   letter-spacing: 0; }
+}
+@keyframes mg-floaty { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+
+.mg-anim-drawX { transform-origin: left center; animation: drawX .9s cubic-bezier(.2,.8,.2,1) forwards; }
+.mg-anim-drawY { transform-origin: top center;  animation: drawY .9s cubic-bezier(.2,.8,.2,1) forwards; }
+.mg-anim-rise  { opacity: 0; animation: riseIn .8s cubic-bezier(.2,.8,.2,1) forwards; }
+.mg-anim-ink   { animation: inkSettle 1.4s ease-out forwards; }
+.mg-floaty     { animation: mg-floaty 7s ease-in-out infinite; }
+
+[data-reveal]       { opacity: 0; }
+[data-reveal].shown { animation: riseIn .8s cubic-bezier(.2,.8,.2,1) forwards; }

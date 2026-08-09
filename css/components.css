@@ -1,0 +1,78 @@
+/* ============================================================================
+   COMPONENTS — the assembled parts.
+   These combine tokens and primitives into pieces you drop onto a page. Only
+   the parts that need real custom CSS live here; the rest of the components
+   (nav, tags, meter, table…) are documented as Tailwind markup patterns in
+   components.html, the gallery.
+   ========================================================================== */
+
+/* ---- Panel treatments ----
+   Five ways to lift text off the dotted mg-sheet so it stays readable. Add one to
+   a container; the hand-drawn border (for .mg-sheet / .mg-notecard) is added by
+   js/ink-lines.js at runtime. */
+
+/* A — clean opaque card, hairline border + soft drop */
+.mg-sheet {
+  background: rgb(var(--rgb-panel) / var(--panel-alpha));
+  border: 1px solid rgb(var(--rgb-ink) / .16);
+  box-shadow: 0 1px 0 rgba(255,255,255,.4) inset, 0 10px 26px -20px rgb(var(--rgb-ink) / .5);
+}
+
+/* B — pressed-in panel, inset shadow like an embossed plate */
+.mg-sheet-inset {
+  background: rgb(var(--rgb-panel) / .74);
+  box-shadow:
+    inset 0 0 0 1px rgb(var(--rgb-ink) / .12),
+    inset 0 3px 12px rgba(120,104,78,.14);
+}
+
+/* C — borderless halo, feathered paper pad with no hard edge */
+.mg-sheet-soft {
+  background: rgb(var(--rgb-panel) / .64);
+  box-shadow: 0 0 0 14px rgb(var(--rgb-panel) / .4);
+  border-radius: 2px;
+}
+
+/* D — ruled index-card, red margin rule + faint horizontal lines */
+.mg-notecard {
+  position: relative;
+  background: rgb(var(--rgb-panel) / .76);
+  border: 1px solid rgb(var(--rgb-ink) / .15);
+}
+.mg-notecard::before {
+  content: "";
+  position: absolute;
+  top: 0; bottom: 0; left: 52px;
+  width: 1px;
+  background: rgb(var(--rgb-rust) / .4);
+}
+.mg-notecard .mg-line { border-bottom: 1px solid rgb(var(--rgb-ink) / .10); }
+
+/* E — per-line highlighter, paper sits behind the words only */
+.mg-text-halo {
+  display: inline;
+  background: rgb(var(--rgb-panel) / var(--halo-alpha));
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  padding: 0.12em 0.28em;
+  box-shadow: 0 0 0 1px rgb(var(--rgb-panel) / var(--halo-alpha));
+}
+
+
+/* ---- Small shared label used throughout (meta rows, captions, tabs) ---- */
+.mg-mono-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--color-faded);
+}
+
+/* doc-only comparison label used on the demo page */
+.mg-variant-tag {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  color: #8a8070;
+}

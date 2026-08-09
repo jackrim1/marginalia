@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Marginalia — Design System</title>
+
+  <!-- Tailwind (Play CDN) + shared config -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="js/tailwind.config.js"></script>
+
+  <!-- rough.js — hand-drawn line/box rendering -->
+  <script src="https://cdn.jsdelivr.net/npm/roughjs@4.6.6/bundled/rough.js"></script>
+
+  <!-- Academic serif + technical mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Old+Standard+TT:ital,wght@0,400;0,700;1,400&family=Spectral:ital,wght@0,300;0,400;0,500;0,600;1,400;1,500&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <!-- Design system: tokens -> primitives -> components -->
+  <link rel="stylesheet" href="css/tokens.css" />
+  <link rel="stylesheet" href="css/primitives.css" />
+  <link rel="stylesheet" href="css/components.css" />
+
+  <!-- gallery doc-chrome only (not part of the system) -->
+  <style>
+    .doc-wrap { max-width: 1100px; margin: 0 auto; padding: 0 1.5rem; }
+    .doc-h2 { font-family: var(--font-display); font-size: 2rem; }
+    .item { margin: 1.25rem 0 2.25rem; }
+    .item > .demo {
+      position: relative;
+      padding: 1.75rem;
+      border: 1px solid rgb(var(--rgb-ink) / .12);
+      background: rgb(var(--rgb-paper2) / .3);
+    }
+    .item > .code {
+      position: relative;
+      margin-top: -1px;
+      background: rgb(var(--rgb-ink) / .93);
+    }
+    .item > .code pre {
+      margin: 0; padding: 1rem 1.1rem; overflow-x: auto;
+      font-family: var(--font-mono); font-size: 12px; line-height: 1.55;
+      color: #e9e2d3;
+    }
+    .item > .code .copy {
+      position: absolute; top: .5rem; right: .5rem;
+      font-family: var(--font-mono); font-size: 9px; letter-spacing: .15em;
+      text-transform: uppercase; color: #cbb9a3;
+      background: rgb(255 255 255 / .08); border: 1px solid rgb(255 255 255 / .15);
+      padding: .25rem .5rem; cursor: pointer;
+    }
+    .item > .code .copy:hover { color: #fff; background: rgb(255 255 255 / .16); }
+    .swatch { height: 64px; border: 1px solid rgb(var(--rgb-ink) / .15); }
+    code.inline { font-family: var(--font-mono); font-size: .85em; background: rgb(var(--rgb-ink) / .07); padding: .1em .35em; }
+  </style>
+</head>
+
+<body class="mg-paper-grain font-serif text-ink antialiased">
+
+  <div class="mg-drafting-grid fixed inset-0 z-0 pointer-events-none opacity-40"></div>
+  <div class="mg-reg-guides fixed inset-0 z-0 pointer-events-none"></div>
+
+  <!-- ---- masthead ---- -->
+  <header class="relative z-10 doc-wrap pt-10 pb-6">
+    <div class="flex items-center justify-between border-b border-ink/25 pb-3">
+      <div class="flex items-center gap-3">
+        <div class="flex">
+          <div class="w-5 h-5 rounded-full bg-rust mg-halftone-fine"></div>
+          <div class="w-5 h-5 rounded-full bg-ember mg-halftone-fine -ml-2"></div>
+        </div>
+        <span class="font-display text-2xl mg-printed">Marginalia</span>
+        <span class="mg-mono-label mt-1 hidden sm:inline">Design System</span>
+      </div>
+      <a href="index.html" class="mg-mono-label hover:text-rust border-b border-transparent hover:border-rust pb-0.5">View demo page →</a>
+    </div>
+  </header>
+
+  <section class="relative z-10 doc-wrap pb-10">
+    <h1 class="mg-letterpress font-display italic text-5xl sm:text-6xl mb-4" data-text="Paper Club Kit">Paper&nbsp;Club&nbsp;Kit</h1>
+    <p class="font-serif text-lg text-faded max-w-2xl leading-relaxed">
+      The pieces that build the note-taking interface, in three layers. Each item
+      shows a live example and the markup to copy. Change a value once in
+      <code class="inline">css/tokens.css</code> and the whole kit follows.
+    </p>
+    <div class="mt-5 flex flex-wrap gap-2">
+      <a href="#tokens" class="mg-mono-label border border-ink/30 px-3 py-1.5 hover:text-rust hover:border-rust">01 · Tokens</a>
+      <a href="#primitives" class="mg-mono-label border border-ink/30 px-3 py-1.5 hover:text-rust hover:border-rust">02 · Primitives</a>
+      <a href="#components" class="mg-mono-label border border-ink/30 px-3 py-1.5 hover:text-rust hover:border-rust">03 · Components</a>
+    </div>
+  </section>
+
+  <!-- ============================================================= -->
+  <!-- 01 · TOKENS                                                    -->
+  <!-- ============================================================= -->
+  <section id="tokens" class="relative z-10 doc-wrap py-8">
+    <div class="flex items-baseline gap-3 mb-2">
+      <span class="mg-mono-label">01</span>
+      <h2 class="doc-h2 mg-printed">Tokens</h2>
+    </div>
+    <p class="font-serif text-faded max-w-2xl mb-6">The named values. Colours are stored as <code class="inline">r g b</code> triplets so any opacity can be applied.</p>
+
+    <!-- colours -->
+    <h3 class="mg-mono-label mb-3">Colour</h3>
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-10">
+      <div><div class="swatch bg-paper"></div><div class="mg-mono-label mt-1">paper</div></div>
+      <div><div class="swatch bg-paper2"></div><div class="mg-mono-label mt-1">paper2</div></div>
+      <div><div class="swatch bg-ink"></div><div class="mg-mono-label mt-1">ink</div></div>
+      <div><div class="swatch bg-faded"></div><div class="mg-mono-label mt-1">faded</div></div>
+      <div><div class="swatch bg-rust"></div><div class="mg-mono-label mt-1">rust</div></div>
+      <div><div class="swatch bg-ember"></div><div class="mg-mono-label mt-1">ember</div></div>
+      <div><div class="swatch bg-coral"></div><div class="mg-mono-label mt-1">coral</div></div>
+      <div><div class="swatch bg-slate"></div><div class="mg-mono-label mt-1">slate</div></div>
+      <div><div class="swatch bg-grid"></div><div class="mg-mono-label mt-1">grid</div></div>
+      <div><div class="swatch bg-regmark"></div><div class="mg-mono-label mt-1">regmark</div></div>
+    </div>
+
+    <!-- type -->
+    <h3 class="mg-mono-label mb-3">Type</h3>
+    <div class="space-y-2 mb-10">
+      <p class="font-display text-4xl">Old Standard TT — display <span class="mg-mono-label">font-display</span></p>
+      <p class="font-serif text-2xl">Spectral — reading text <span class="mg-mono-label">font-serif</span></p>
+      <p class="font-mono text-sm uppercase tracking-[0.2em]">IBM Plex Mono — labels · font-mono</p>
+    </div>
+
+    <!-- texture tokens -->
+    <h3 class="mg-mono-label mb-3">Texture &amp; grid tokens</h3>
+    <div class="font-mono text-xs text-faded grid sm:grid-cols-2 gap-x-8 gap-y-1 max-w-2xl">
+      <div>--dot-size <span class="text-ink">9px</span></div>
+      <div>--grid-step <span class="text-ink">96px</span></div>
+      <div>--dot-alpha <span class="text-ink">0.6</span></div>
+      <div>--grid-substep <span class="text-ink">24px</span></div>
+      <div>--dot-layer-opacity <span class="text-ink">0.55</span></div>
+      <div>--panel-alpha <span class="text-ink">0.72</span></div>
+    </div>
+  </section>
+
+  <!-- ============================================================= -->
+  <!-- 02 · PRIMITIVES                                                -->
+  <!-- ============================================================= -->
+  <section id="primitives" class="relative z-10 doc-wrap py-8">
+    <div class="flex items-baseline gap-3 mb-2">
+      <span class="mg-mono-label">02</span>
+      <h2 class="doc-h2 mg-printed">Primitives</h2>
+    </div>
+    <p class="font-serif text-faded max-w-2xl mb-6">The paper, ink, and print effects. Building blocks, not finished UI.</p>
+
+    <h3 class="mg-mono-label mb-1">Halftone fills</h3>
+    <div class="item">
+      <template class="ex">
+<div class="flex gap-4">
+  <div class="w-24 h-24 bg-rust mg-halftone"></div>
+  <div class="w-24 h-24 bg-slate mg-halftone-fine"></div>
+  <div class="w-24 h-24 bg-coral mg-halftone-light"></div>
+</div>
+      </template>
+    </div>
+
+    <h3 class="mg-mono-label mb-1">Letterpress &amp; printed text</h3>
+    <div class="item">
+      <template class="ex">
+<h2 class="mg-letterpress font-display italic text-5xl" data-text="Letterpress">Letterpress</h2>
+<p class="mg-printed font-display text-2xl mt-3">Printed (subtle ink wobble)</p>
+      </template>
+    </div>
+
+    <h3 class="mg-mono-label mb-1">Ink line &amp; box</h3>
+    <p class="font-serif text-sm text-faded mb-2">A <code class="inline">.h-px</code> rule and a <code class="inline">.mg-sketch-box</code> frame, inked by <code class="inline">js/ink-lines.js</code>.</p>
+    <div class="item">
+      <template class="ex">
+<div class="h-px bg-ink/40 mb-6"></div>
+<div class="mg-sketch-box p-6 text-center font-serif text-faded">hand-drawn frame</div>
+      </template>
+    </div>
+
+    <h3 class="mg-mono-label mb-1">Crop marks &amp; twin-dot motif</h3>
+    <div class="item">
+      <template class="ex">
+<div class="relative h-24 border border-ink/15">
+  <span class="mg-crop" style="top:6px;left:6px"></span>
+  <span class="mg-crop" style="top:6px;right:6px;transform:scaleX(-1)"></span>
+  <span class="mg-crop" style="bottom:6px;left:6px;transform:scaleY(-1)"></span>
+  <span class="mg-crop" style="bottom:6px;right:6px;transform:scale(-1)"></span>
+  <div class="absolute inset-0 flex items-center justify-center">
+    <div class="flex">
+      <div class="w-6 h-6 rounded-full bg-ember mg-halftone-fine"></div>
+      <div class="w-6 h-6 rounded-full bg-ember mg-halftone-fine -ml-2"></div>
+    </div>
+  </div>
+</div>
+      </template>
+    </div>
+  </section>
+
+  <!-- ============================================================= -->
+  <!-- 03 · COMPONENTS                                                -->
+  <!-- ============================================================= -->
+  <section id="components" class="relative z-10 doc-wrap py-8 pb-24">
+    <div class="flex items-baseline gap-3 mb-2">
+      <span class="mg-mono-label">03</span>
+      <h2 class="doc-h2 mg-printed">Components</h2>
+    </div>
+    <p class="font-serif text-faded max-w-2xl mb-6">The assembled parts. Drop them onto a page.</p>
+
+    <h3 class="mg-mono-label mb-1">Button &amp; tags</h3>
+    <div class="item">
+      <template class="ex">
+<div class="flex flex-wrap items-center gap-3">
+  <button class="font-mono text-[11px] uppercase tracking-widest bg-ink text-paper px-4 py-2 hover:bg-rust transition-colors">New Note +</button>
+  <span class="font-mono text-[10px] uppercase tracking-wider border border-rust text-rust px-2 py-1">world-models</span>
+  <span class="font-mono text-[10px] uppercase tracking-wider border border-ink/40 text-faded px-2 py-1">jepa</span>
+  <span class="font-mono text-[10px] uppercase tracking-wider bg-ink text-paper px-2 py-1">to-read</span>
+</div>
+      </template>
+    </div>
+
+    <h3 class="mg-mono-label mb-1">Panel A — card <span class="normal-case tracking-normal">(<code class="inline">.mg-sheet</code>)</span></h3>
+    <div class="item">
+      <template class="ex">
+<div class="mg-sheet p-6 max-w-md">
+  <h3 class="font-display text-xl mg-printed mb-2">Abstract</h3>
+  <p class="font-serif text-faded leading-relaxed">Clean opaque card that lifts text off the dotted sheet. Hand-drawn border.</p>
+</div>
+      </template>
+    </div>
+
+    <h3 class="mg-mono-label mb-1">Panel B — inset plate <span class="normal-case tracking-normal">(<code class="inline">.mg-sheet-inset</code>)</span></h3>
+    <div class="item">
+      <template class="ex">
+<div class="mg-sheet-inset p-6 max-w-md">
+  <h3 class="font-display text-xl mg-printed mb-2">Method</h3>
+  <p class="font-serif text-faded leading-relaxed">Pressed-in panel with an inset shadow, like an embossed plate.</p>
+</div>
+      </template>
+    </div>
+
+    <h3 class="mg-mono-label mb-1">Panel C — soft halo <span class="normal-case tracking-normal">(<code class="inline">.mg-sheet-soft</code>)</span></h3>
+    <div class="item">
+      <template class="ex">
+<div class="mg-sheet-soft inline-block max-w-md">
+  <span class="mg-mono-label block mb-1">14 : 03 · today</span>
+  <p class="font-serif text-faded leading-relaxed">Borderless feathered pad. Good for log entries and inline notes.</p>
+</div>
+      </template>
+    </div>
+
+    <h3 class="mg-mono-label mb-1">Panel D — ruled notecard <span class="normal-case tracking-normal">(<code class="inline">.mg-notecard</code>)</span></h3>
+    <div class="item">
+      <template class="ex">
+<div class="mg-notecard p-6 pl-16 max-w-md">
+  <dl class="font-serif">
+    <div class="mg-line py-3"><dt class="font-semibold inline">Margin.</dt><dd class="inline text-faded"> The blank column where the reader answers back.</dd></div>
+    <div class="py-3"><dt class="font-semibold inline">Plate.</dt><dd class="inline text-faded"> An immutable capture of a page.</dd></div>
+  </dl>
+</div>
+      </template>
+    </div>
+
+    <h3 class="mg-mono-label mb-1">Panel E — per-line halo <span class="normal-case tracking-normal">(<code class="inline">.mg-text-halo</code>)</span></h3>
+    <div class="item">
+      <template class="ex">
+<p class="leading-loose max-w-md">
+  <span class="mg-text-halo font-serif text-lg text-ink">Paper sits behind the words only, so text stays readable on bare background.</span>
+</p>
+      </template>
+    </div>
+
+    <h3 class="mg-mono-label mb-1">Labelled plate <span class="normal-case tracking-normal">(tabbed box)</span></h3>
+    <div class="item">
+      <template class="ex">
+<div class="mg-sketch-box relative border border-ink/25 p-4 max-w-xs">
+  <div class="absolute -top-2 left-4 bg-paper px-2 mg-mono-label z-10">Plate A</div>
+  <div class="grid grid-cols-2 gap-2 pt-2">
+    <div class="aspect-square bg-slate/70 mg-halftone"></div>
+    <div class="aspect-square bg-coral/70 mg-halftone"></div>
+    <div class="aspect-square bg-rust/80 mg-halftone"></div>
+    <div class="aspect-square bg-ink/70 mg-halftone-fine"></div>
+  </div>
+</div>
+      </template>
+    </div>
+
+    <h3 class="mg-mono-label mb-1">Progress meter</h3>
+    <div class="item">
+      <template class="ex">
+<div class="max-w-xs">
+  <div class="flex justify-between mg-mono-label mb-2"><span>Read</span><span>62%</span></div>
+  <div class="h-3 border border-ink/40 bg-paper relative overflow-hidden">
+    <div class="h-full bg-rust mg-halftone-fine" style="width:62%"></div>
+  </div>
+</div>
+      </template>
+    </div>
+
+    <h3 class="mg-mono-label mb-1">Marginal note</h3>
+    <div class="item">
+      <template class="ex">
+<aside class="relative border-l-2 border-rust pl-5 py-2 max-w-md">
+  <span class="absolute -left-[7px] top-3 w-3 h-3 rounded-full bg-ember mg-halftone-fine"></span>
+  <p class="font-serif italic text-lg text-faded leading-relaxed">"A margin is where the reader answers back. Keep it wide."</p>
+  <p class="mg-mono-label mt-2">— Marginal note, fol. 12r</p>
+</aside>
+      </template>
+    </div>
+
+    <h3 class="mg-mono-label mb-1">Ledger table</h3>
+    <div class="item">
+      <template class="ex">
+<div class="mg-sheet overflow-x-auto max-w-lg">
+  <table class="w-full font-serif text-sm">
+    <thead>
+      <tr class="mg-rule-double bg-paper2/50 font-display text-left">
+        <th class="px-4 py-2 font-normal">Method</th>
+        <th class="px-4 py-2 font-normal text-right">Params</th>
+        <th class="px-4 py-2 font-normal text-right">Score</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-ink/15">
+      <tr><td class="px-4 py-2">Baseline</td><td class="px-4 py-2 text-right font-mono">300M</td><td class="px-4 py-2 text-right font-mono">64.8</td></tr>
+      <tr class="bg-ember/15"><td class="px-4 py-2 font-semibold">LeWM (ours)</td><td class="px-4 py-2 text-right font-mono">15M</td><td class="px-4 py-2 text-right font-mono font-semibold">79.1</td></tr>
+    </tbody>
+  </table>
+</div>
+      </template>
+    </div>
+
+    <h3 class="mg-mono-label mb-1">Pull quote</h3>
+    <div class="item">
+      <template class="ex">
+<div class="relative py-8 max-w-lg">
+  <div class="absolute inset-0 bg-rust/90 mg-halftone"></div>
+  <blockquote class="relative font-display italic text-3xl leading-tight text-paper px-8 mg-printed">
+    "Two loss terms. One margin. The rest is just reading."
+  </blockquote>
+</div>
+      </template>
+    </div>
+  </section>
+
+  <footer class="relative z-10 doc-wrap border-t border-ink/30 py-8 mb-6">
+    <p class="mg-mono-label">Marginalia design system · tokens → primitives → components · © MMXXVI</p>
+  </footer>
+
+  <!-- ---- system scripts ---- -->
+  <script src="js/filters.js"></script>
+  <script src="js/interactions.js"></script>
+
+  <!-- ---- gallery builder: render each <template class="ex"> as live demo + code ---- -->
+  <script>
+    function dedent(s) {
+      const lines = s.replace(/^\n/, '').replace(/\s+$/, '').split('\n');
+      const indent = Math.min(...lines.filter(l => l.trim()).map(l => l.match(/^ */)[0].length));
+      return lines.map(l => l.slice(indent)).join('\n');
+    }
+    document.querySelectorAll('template.ex').forEach((tpl) => {
+      const src = dedent(tpl.innerHTML);
+      const item = tpl.parentElement;
+
+      const demo = document.createElement('div');
+      demo.className = 'demo';
+      demo.innerHTML = src;
+
+      const code = document.createElement('div');
+      code.className = 'code';
+      const pre = document.createElement('pre');
+      const c = document.createElement('code');
+      c.textContent = src;
+      pre.appendChild(c);
+      const btn = document.createElement('button');
+      btn.className = 'copy';
+      btn.textContent = 'copy';
+      btn.addEventListener('click', () => {
+        navigator.clipboard.writeText(src).then(() => {
+          btn.textContent = 'copied';
+          setTimeout(() => (btn.textContent = 'copy'), 1200);
+        });
+      });
+      code.appendChild(btn);
+      code.appendChild(pre);
+
+      item.appendChild(demo);
+      item.appendChild(code);
+    });
+  </script>
+
+  <!-- ink-lines runs last, so it decorates the rendered examples too -->
+  <script src="js/ink-lines.js"></script>
+</body>
+</html>

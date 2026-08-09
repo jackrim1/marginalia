@@ -5,8 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Marginalia — Paper Club Notes</title>
 
-  <!-- Tailwind (CDN, config inline) -->
+  <!-- Tailwind (Play CDN) + shared config -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="js/tailwind.config.js"></script>
 
   <!-- rough.js — hand-drawn line/box rendering -->
   <script src="https://cdn.jsdelivr.net/npm/roughjs@4.6.6/bundled/rough.js"></script>
@@ -16,289 +17,39 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Old+Standard+TT:ital,wght@0,400;0,700;1,400&family=Spectral:ital,wght@0,300;0,400;0,500;0,600;1,400;1,500&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
 
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          fontFamily: {
-            display: ['"Old Standard TT"', 'Georgia', 'serif'],
-            serif: ['Spectral', 'Georgia', 'serif'],
-            mono: ['"IBM Plex Mono"', 'monospace'],
-          },
-          colors: {
-            paper:   '#ece7db',
-            paper2:  '#e4dece',
-            ink:     '#1c1a17',
-            faded:   '#4a463d',
-            rust:    '#c0532a',
-            ember:   '#e6742b',
-            coral:   '#dda588',
-            slate:   '#aeb2bf',
-            grid:    '#c6bfae',
-            regmark: '#c98a72',
-          },
-        },
-      },
-    };
-  </script>
-
-  <style>
-    /* ---------- Paper substrate ---------- */
-    body {
-      background-color: #ece7db;
-      color: #1c1a17;
-      letter-spacing: -0.015em;
-    }
-    /* pull display headings in tighter than body */
-    .font-display { letter-spacing: -0.03em; }
-    .font-serif   { letter-spacing: -0.012em; }
-
-    /* Dotted "bumps": a raised highlight dot + offset shadow dot per cell,
-       so the sheet reads like embossed / stippled paper relief. Kept subtle
-       and on 'normal' blend so it doesn't muddy the text. */
-    .paper-grain::before {
-      content: "";
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      z-index: 0;
-      opacity: .55;
-      background-image:
-        radial-gradient(circle, rgba(250,246,238,.6) 1.3px, transparent 2.4px),
-        radial-gradient(circle, rgba(250,246,238,.6) 1.3px, transparent 2.4px);
-      background-size: 9px 9px, 9px 9px;
-      background-position: 0 0, 4.5px 4.5px;
-    }
-    /* Warm blotch/vignette so it never reads flat */
-    .paper-grain::after {
-      content: "";
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      z-index: 0;
-      background:
-        radial-gradient(120% 90% at 15% 8%, rgba(214,196,160,.35), transparent 55%),
-        radial-gradient(120% 90% at 90% 95%, rgba(150,120,90,.18), transparent 50%);
-      mix-blend-mode: multiply;
-    }
-
-    /* ---------- Technical drawing grid ---------- */
-    .drafting-grid {
-      background-image:
-        linear-gradient(to right, rgba(120,110,90,.10) 1px, transparent 1px),
-        linear-gradient(to bottom, rgba(120,110,90,.10) 1px, transparent 1px),
-        linear-gradient(to right, rgba(120,110,90,.045) 1px, transparent 1px),
-        linear-gradient(to bottom, rgba(120,110,90,.045) 1px, transparent 1px);
-      background-size:
-        96px 96px,
-        96px 96px,
-        24px 24px,
-        24px 24px;
-    }
-
-    /* Faint red "registration" guide lines drawn across the sheet */
-    .reg-guides {
-      background-image:
-        linear-gradient(to right, rgba(201,138,114,.28) 1px, transparent 1px),
-        linear-gradient(to bottom, rgba(201,138,114,.28) 1px, transparent 1px);
-      background-size: 100% 100%;
-      background-position: 22% 0, 0 30%;
-      background-repeat: no-repeat;
-    }
-
-    /* ---------- Halftone dot fills ---------- */
-    .halftone {
-      background-image: radial-gradient(circle, rgba(0,0,0,.55) 1.1px, transparent 1.4px);
-      background-size: 5px 5px;
-    }
-    .halftone-fine {
-      background-image: radial-gradient(circle, rgba(0,0,0,.5) .9px, transparent 1.2px);
-      background-size: 4px 4px;
-    }
-    .halftone-light {
-      background-image: radial-gradient(circle, rgba(0,0,0,.28) 1px, transparent 1.3px);
-      background-size: 6px 6px;
-    }
-
-    /* ---------- Letterpress / distressed ink text ---------- */
-    .letterpress {
-      position: relative;
-      filter: url(#inkrough);
-    }
-    /* dry-brush ink breakup: noise texture masked to the glyphs */
-    .letterpress::after {
-      content: attr(data-text);
-      position: absolute;
-      inset: 0;
-      color: #ece7db;
-      mix-blend-mode: screen;
-      opacity: .35;
-      background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='m'><feTurbulence type='fractalNoise' baseFrequency='0.35' numOctaves='3'/></filter><rect width='100%25' height='100%25' filter='url(%23m)'/></svg>");
-      -webkit-background-clip: text;
-      background-clip: text;
-      -webkit-text-fill-color: transparent;
-      pointer-events: none;
-    }
-
-    .printed {
-      text-shadow: 0 0 .5px rgba(28,26,23,.5);
-      filter: url(#inkroughsoft);
-    }
-
-    /* ---------- crop / corner marks ---------- */
-    .crop { position: absolute; width: 18px; height: 18px; opacity: .5; }
-    .crop::before, .crop::after { content:""; position:absolute; background:#5a5346; }
-    .crop::before { width: 18px; height: 1px; top: 0; }
-    .crop::after  { width: 1px; height: 18px; left: 0; }
-
-    /* ---------- entrance animations ---------- */
-    @keyframes drawX { from { transform: scaleX(0); opacity: 0; } to { transform: scaleX(1); opacity: 1; } }
-    @keyframes drawY { from { transform: scaleY(0); opacity: 0; } to { transform: scaleY(1); opacity: 1; } }
-    @keyframes riseIn { from { transform: translateY(14px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-    @keyframes inkSettle {
-      0%   { opacity: 0; filter: blur(6px); letter-spacing: .12em; }
-      60%  { opacity: 1; filter: blur(0);   letter-spacing: .01em; }
-      100% { opacity: 1; filter: blur(0);   letter-spacing: 0; }
-    }
-    @keyframes floaty { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
-
-    .anim-drawX { transform-origin: left center; animation: drawX .9s cubic-bezier(.2,.8,.2,1) forwards; }
-    .anim-drawY { transform-origin: top center;  animation: drawY .9s cubic-bezier(.2,.8,.2,1) forwards; }
-    .anim-rise  { opacity: 0; animation: riseIn .8s cubic-bezier(.2,.8,.2,1) forwards; }
-    .anim-ink   { animation: inkSettle 1.4s ease-out forwards; }
-    .floaty     { animation: floaty 7s ease-in-out infinite; }
-
-    [data-reveal] { opacity: 0; }
-    [data-reveal].shown { animation: riseIn .8s cubic-bezier(.2,.8,.2,1) forwards; }
-
-    /* thin double rule used under headings in old papers */
-    .rule-double { border-top: 3px double #2a2723; }
-
-    /* ---------- readable panels over the dotted sheet ----------
-       Each mutes the light dots behind the text differently, so text
-       stays legible while keeping a paper feel. */
-
-    /* A: clean opaque card, hairline border + soft drop */
-    .sheet {
-      background: rgba(238,233,222,.72);
-      border: 1px solid rgba(28,26,23,.16);
-      box-shadow: 0 1px 0 rgba(255,255,255,.4) inset, 0 10px 26px -20px rgba(28,26,23,.5);
-    }
-
-    /* B: pressed-in panel, inset shadow like an embossed plate */
-    .sheet-inset {
-      background: rgba(240,235,224,.74);
-      box-shadow:
-        inset 0 0 0 1px rgba(28,26,23,.12),
-        inset 0 3px 12px rgba(120,104,78,.14);
-    }
-
-    /* C: borderless halo — feathered paper pad, no hard edge */
-    .sheet-soft {
-      background: rgba(238,233,222,.64);
-      box-shadow: 0 0 0 14px rgba(238,233,222,.4);
-      border-radius: 2px;
-    }
-
-    /* D: ruled index-card, red margin rule + faint horizontal lines */
-    .notecard {
-      position: relative;
-      background: rgba(240,235,224,.76);
-      border: 1px solid rgba(28,26,23,.15);
-    }
-    .notecard::before {
-      content: "";
-      position: absolute;
-      top: 0; bottom: 0; left: 52px;
-      width: 1px;
-      background: rgba(192,83,42,.4);
-    }
-    .notecard .line { border-bottom: 1px solid rgba(28,26,23,.10); }
-
-    /* E: per-line highlighter — paper sits behind the words only */
-    .text-halo {
-      display: inline;
-      background: rgba(240,235,224,.66);
-      box-decoration-break: clone;
-      -webkit-box-decoration-break: clone;
-      padding: 0.12em 0.28em;
-      box-shadow: 0 0 0 1px rgba(240,235,224,.66);
-    }
-
-    /* little comparison label so we can talk about each treatment */
-    .variant-tag {
-      font-family: '"IBM Plex Mono"', monospace;
-      font-size: 9px;
-      letter-spacing: .22em;
-      text-transform: uppercase;
-      color: #8a8070;
-    }
-
-    ::selection { background: rgba(230,116,43,.28); }
-  </style>
+  <!-- Design system: tokens -> primitives -> components -->
+  <link rel="stylesheet" href="css/tokens.css" />
+  <link rel="stylesheet" href="css/primitives.css" />
+  <link rel="stylesheet" href="css/components.css" />
 </head>
 
-<body class="paper-grain font-serif text-ink antialiased selection:bg-ember/30">
-
-  <!-- SVG filters used by the letterpress classes -->
-  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
-    <filter id="inkrough">
-      <feTurbulence type="fractalNoise" baseFrequency="0.012 0.02" numOctaves="3" result="noise"/>
-      <feDisplacementMap in="SourceGraphic" in2="noise" scale="3.2" xChannelSelector="R" yChannelSelector="G"/>
-    </filter>
-    <filter id="inkroughsoft">
-      <feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="2" result="noise"/>
-      <feDisplacementMap in="SourceGraphic" in2="noise" scale="1.1"/>
-    </filter>
-
-    <!-- ink breakup for drawn lines: roughen the edge, then erode small
-         flecks out of the stroke so it reads like uneven ink on textured paper -->
-    <filter id="inkbreak" x="-5%" y="-400%" width="110%" height="900%">
-      <!-- 1. nudge the edge so it isn't a perfect vector line -->
-      <feTurbulence type="fractalNoise" baseFrequency="0.9 0.7" numOctaves="2" seed="7" result="warp"/>
-      <feDisplacementMap in="SourceGraphic" in2="warp" scale="1.0"
-                         xChannelSelector="R" yChannelSelector="G" result="edged"/>
-      <!-- 2. build a speckle mask from coarse noise -->
-      <feTurbulence type="fractalNoise" baseFrequency="0.34" numOctaves="2" seed="4" result="speck"/>
-      <feColorMatrix in="speck" type="matrix"
-        values="0 0 0 0 0
-                0 0 0 0 0
-                0 0 0 0 0
-                1 0 0 0 0" result="speckA"/>
-      <!-- keep most of the stroke; only the lowest slice drops out -->
-      <feComponentTransfer in="speckA" result="mask">
-        <feFuncA type="discrete" tableValues="0 1 1 1 1 1 1 1"/>
-      </feComponentTransfer>
-      <!-- 3. knock the flecks out of the roughened stroke -->
-      <feComposite in="edged" in2="mask" operator="in"/>
-    </filter>
-  </svg>
+<body class="mg-paper-grain font-serif text-ink antialiased selection:bg-ember/30">
 
   <!-- faint global drafting grid, fixed behind everything -->
-  <div class="drafting-grid fixed inset-0 z-0 pointer-events-none opacity-50"></div>
-  <div class="reg-guides fixed inset-0 z-0 pointer-events-none"></div>
+  <div class="mg-drafting-grid fixed inset-0 z-0 pointer-events-none opacity-50"></div>
+  <div class="mg-reg-guides fixed inset-0 z-0 pointer-events-none"></div>
 
-  <!-- corner crop marks -->
-  <span class="crop" style="top:14px;left:14px"></span>
-  <span class="crop" style="top:14px;right:14px;transform:scaleX(-1)"></span>
-  <span class="crop" style="bottom:14px;left:14px;transform:scaleY(-1)"></span>
-  <span class="crop" style="bottom:14px;right:14px;transform:scale(-1)"></span>
+  <!-- corner mg-crop marks -->
+  <span class="mg-crop" style="top:14px;left:14px"></span>
+  <span class="mg-crop" style="top:14px;right:14px;transform:scaleX(-1)"></span>
+  <span class="mg-crop" style="bottom:14px;left:14px;transform:scaleY(-1)"></span>
+  <span class="mg-crop" style="bottom:14px;right:14px;transform:scale(-1)"></span>
 
   <!-- floating decorative shapes (behind content) -->
   <div class="pointer-events-none select-none">
     <!-- twin ember dots motif -->
-    <div class="floaty absolute z-0" style="top:120px;left:40px;animation-delay:.4s">
+    <div class="mg-floaty absolute z-0" style="top:120px;left:40px;animation-delay:.4s">
       <div class="flex">
-        <div class="w-8 h-8 rounded-full bg-ember halftone-fine"></div>
-        <div class="w-8 h-8 rounded-full bg-ember halftone-fine -ml-3"></div>
+        <div class="w-8 h-8 rounded-full bg-ember mg-halftone-fine"></div>
+        <div class="w-8 h-8 rounded-full bg-ember mg-halftone-fine -ml-3"></div>
       </div>
     </div>
-    <!-- coral halftone square -->
-    <div class="absolute z-0 w-24 h-24 bg-coral/70 halftone anim-rise" style="top:340px;left:24px;animation-delay:.6s"></div>
+    <!-- coral mg-halftone square -->
+    <div class="absolute z-0 w-24 h-24 bg-coral/70 mg-halftone mg-anim-rise" style="top:340px;left:24px;animation-delay:.6s"></div>
     <!-- slate block -->
-    <div class="absolute z-0 w-40 h-16 bg-slate/60 halftone-light anim-rise hidden md:block" style="bottom:80px;right:60px;animation-delay:.9s"></div>
+    <div class="absolute z-0 w-40 h-16 bg-slate/60 mg-halftone-light mg-anim-rise hidden md:block" style="bottom:80px;right:60px;animation-delay:.9s"></div>
     <!-- little ember bar -->
-    <div class="absolute z-0 w-16 h-1.5 bg-rust anim-drawX" style="top:520px;left:36px;animation-delay:1s"></div>
+    <div class="absolute z-0 w-16 h-1.5 bg-rust mg-anim-drawX" style="top:520px;left:36px;animation-delay:1s"></div>
     <!-- dotted ember rule -->
     <div class="absolute z-0" style="top:200px;right:80px">
       <div class="flex gap-1">
@@ -316,10 +67,10 @@
         <!-- brand -->
         <div class="flex items-center gap-3">
           <div class="flex">
-            <div class="w-5 h-5 rounded-full bg-rust halftone-fine"></div>
-            <div class="w-5 h-5 rounded-full bg-ember halftone-fine -ml-2"></div>
+            <div class="w-5 h-5 rounded-full bg-rust mg-halftone-fine"></div>
+            <div class="w-5 h-5 rounded-full bg-ember mg-halftone-fine -ml-2"></div>
           </div>
-          <span class="font-display text-2xl tracking-tight printed">Marginalia</span>
+          <span class="font-display text-2xl tracking-tight mg-printed">Marginalia</span>
           <span class="font-mono text-[10px] uppercase tracking-[0.3em] text-faded mt-1 hidden sm:inline">est. mcmlxii</span>
         </div>
 
@@ -345,26 +96,26 @@
   <!-- ============================ MASTHEAD ============================ -->
   <section class="relative z-10 max-w-7xl mx-auto px-6 lg:px-10 pt-16 pb-10">
     <!-- tiny meta row like a paper header -->
-    <div class="flex items-center gap-4 font-mono text-[10px] uppercase tracking-[0.25em] text-faded mb-6 anim-rise">
+    <div class="flex items-center gap-4 font-mono text-[10px] uppercase tracking-[0.25em] text-faded mb-6 mg-anim-rise">
       <span>Vol. IV</span><span class="text-rust">◦</span>
       <span>No. 27</span><span class="text-rust">◦</span>
       <span>Reading Group Edition</span>
     </div>
 
-    <h1 class="letterpress anim-ink font-display italic text-6xl sm:text-7xl lg:text-8xl leading-[0.95] tracking-tight"
+    <h1 class="mg-letterpress mg-anim-ink font-display italic text-6xl sm:text-7xl lg:text-8xl leading-[0.95] tracking-tight"
         data-text="Paper Club">
       Paper&nbsp;Club
     </h1>
 
-    <p class="mt-6 max-w-2xl anim-rise leading-loose" style="animation-delay:.2s">
-      <span class="text-halo font-serif text-lg text-ink">A quiet place to read, mark, and argue with papers. Notes set like a
+    <p class="mt-6 max-w-2xl mg-anim-rise leading-loose" style="animation-delay:.2s">
+      <span class="mg-text-halo font-serif text-lg text-ink">A quiet place to read, mark, and argue with papers. Notes set like a
       1960s preprint — ruled margins, halftone plates, and ink that never quite
       lands square on the page.</span>
     </p>
-    <span class="variant-tag block mt-2">treatment&nbsp;E · per-line halo</span>
+    <span class="mg-variant-tag block mt-2">treatment&nbsp;E · per-line halo</span>
 
     <!-- animated underscore rule -->
-    <div class="mt-8 h-px bg-ink/40 anim-drawX" style="animation-delay:.4s"></div>
+    <div class="mt-8 h-px bg-ink/40 mg-anim-drawX" style="animation-delay:.4s"></div>
   </section>
 
   <!-- ============================ BODY: side + main ============================ -->
@@ -373,7 +124,7 @@
     <!-- ----------------- SIDE COLUMN ----------------- -->
     <aside class="lg:sticky lg:top-8 self-start space-y-8" data-reveal>
       <!-- contents card -->
-      <div class="sketch-box border border-ink/25 bg-paper2/40 relative">
+      <div class="mg-sketch-box border border-ink/25 bg-paper2/40 relative">
         <div class="absolute -top-2 left-4 bg-paper px-2 font-mono text-[10px] uppercase tracking-[0.2em] text-faded z-10">Contents</div>
         <ol class="p-5 pt-6 space-y-3 font-serif text-sm">
           <li class="flex justify-between items-baseline group cursor-pointer">
@@ -412,18 +163,18 @@
           <span>Read</span><span>62%</span>
         </div>
         <div class="h-3 border border-ink/40 bg-paper relative overflow-hidden">
-          <div class="h-full bg-rust halftone-fine" style="width:62%"></div>
+          <div class="h-full bg-rust mg-halftone-fine" style="width:62%"></div>
         </div>
       </div>
 
-      <!-- mini halftone plate -->
-      <div class="sketch-box relative border border-ink/25 p-3">
+      <!-- mini mg-halftone plate -->
+      <div class="mg-sketch-box relative border border-ink/25 p-3">
         <div class="absolute -top-2 left-4 bg-paper px-2 font-mono text-[10px] uppercase tracking-[0.2em] text-faded z-10">Plate&nbsp;A</div>
         <div class="grid grid-cols-2 gap-2 pt-2">
-          <div class="aspect-square bg-slate/70 halftone"></div>
-          <div class="aspect-square bg-coral/70 halftone"></div>
-          <div class="aspect-square bg-rust/80 halftone"></div>
-          <div class="aspect-square bg-ink/70 halftone-fine"></div>
+          <div class="aspect-square bg-slate/70 mg-halftone"></div>
+          <div class="aspect-square bg-coral/70 mg-halftone"></div>
+          <div class="aspect-square bg-rust/80 mg-halftone"></div>
+          <div class="aspect-square bg-ink/70 mg-halftone-fine"></div>
         </div>
       </div>
     </aside>
@@ -433,10 +184,10 @@
 
       <!-- Abstract block — TREATMENT A: clean opaque card -->
       <section data-reveal>
-        <span class="variant-tag block mb-2">treatment&nbsp;A · card</span>
-        <div class="sheet p-7">
+        <span class="mg-variant-tag block mb-2">treatment&nbsp;A · card</span>
+        <div class="mg-sheet p-7">
           <div class="flex items-baseline gap-3 mb-3">
-            <h2 class="font-display text-2xl printed">Abstract</h2>
+            <h2 class="font-display text-2xl mg-printed">Abstract</h2>
             <div class="flex-1 h-px bg-ink/25"></div>
             <span class="font-mono text-[10px] text-faded">§1</span>
           </div>
@@ -451,14 +202,14 @@
             In this work we introduce a marginalia model that annotates stably
             end-to-end from raw pages, using only two note types: a highlight and a
             question. This reduces tunable disagreement from six terms to one,
-            <span class="bg-ember/70 halftone-fine px-1 text-ink">while remaining competitive across diverse reading tasks.</span>
+            <span class="bg-ember/70 mg-halftone-fine px-1 text-ink">while remaining competitive across diverse reading tasks.</span>
           </p>
         </div>
       </section>
 
       <!-- Callout / marginal note -->
       <aside class="relative border-l-2 border-rust pl-5 py-2" data-reveal>
-        <span class="absolute -left-[7px] top-3 w-3 h-3 rounded-full bg-ember halftone-fine"></span>
+        <span class="absolute -left-[7px] top-3 w-3 h-3 rounded-full bg-ember mg-halftone-fine"></span>
         <p class="font-serif italic text-lg text-faded leading-relaxed">
           “A margin is where the reader answers back. Keep it wide.”
         </p>
@@ -467,11 +218,11 @@
 
       <!-- Figure with technical plate -->
       <figure data-reveal>
-        <div class="sketch-box relative border border-ink/30 bg-paper2/30 p-6 overflow-hidden">
-          <span class="crop" style="top:6px;left:6px"></span>
-          <span class="crop" style="top:6px;right:6px;transform:scaleX(-1)"></span>
-          <span class="crop" style="bottom:6px;left:6px;transform:scaleY(-1)"></span>
-          <span class="crop" style="bottom:6px;right:6px;transform:scale(-1)"></span>
+        <div class="mg-sketch-box relative border border-ink/30 bg-paper2/30 p-6 overflow-hidden">
+          <span class="mg-crop" style="top:6px;left:6px"></span>
+          <span class="mg-crop" style="top:6px;right:6px;transform:scaleX(-1)"></span>
+          <span class="mg-crop" style="bottom:6px;left:6px;transform:scaleY(-1)"></span>
+          <span class="mg-crop" style="bottom:6px;right:6px;transform:scale(-1)"></span>
 
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 items-end">
             <!-- pretend plots: SVG line/scatter in ink -->
@@ -497,17 +248,17 @@
 
       <!-- Two-up card row: components -->
       <section class="grid sm:grid-cols-2 gap-6" data-reveal>
-        <div class="sheet relative p-5 hover:border-rust transition-colors group">
-          <div class="w-10 h-10 mb-4 bg-rust halftone group-hover:scale-105 transition-transform"></div>
-          <h3 class="font-display text-xl mb-2 printed">Highlight</h3>
+        <div class="mg-sheet relative p-5 hover:border-rust transition-colors group">
+          <div class="w-10 h-10 mb-4 bg-rust mg-halftone group-hover:scale-105 transition-transform"></div>
+          <h3 class="font-display text-xl mb-2 mg-printed">Highlight</h3>
           <p class="font-serif text-sm leading-relaxed text-faded">
             Ut enim ad minim veniam, quis nostrud exercitation. Mark a passage and
             it files itself under the right label automatically.
           </p>
         </div>
-        <div class="sheet relative p-5 hover:border-rust transition-colors group">
-          <div class="w-10 h-10 mb-4 bg-slate halftone group-hover:scale-105 transition-transform"></div>
-          <h3 class="font-display text-xl mb-2 printed">Cross-reference</h3>
+        <div class="mg-sheet relative p-5 hover:border-rust transition-colors group">
+          <div class="w-10 h-10 mb-4 bg-slate mg-halftone group-hover:scale-105 transition-transform"></div>
+          <h3 class="font-display text-xl mb-2 mg-printed">Cross-reference</h3>
           <p class="font-serif text-sm leading-relaxed text-faded">
             Duis aute irure dolor in reprehenderit. Link a note to any other note
             and watch the citation graph draw itself.
@@ -517,10 +268,10 @@
 
       <!-- Method with numbered steps — TREATMENT B: pressed-in inset panel -->
       <section data-reveal>
-        <span class="variant-tag block mb-2">treatment&nbsp;B · inset plate</span>
-        <div class="sheet-inset p-7">
+        <span class="mg-variant-tag block mb-2">treatment&nbsp;B · inset plate</span>
+        <div class="mg-sheet-inset p-7">
           <div class="flex items-baseline gap-3 mb-4">
-            <h2 class="font-display text-2xl printed">Method</h2>
+            <h2 class="font-display text-2xl mg-printed">Method</h2>
             <div class="flex-1 h-px bg-ink/25"></div>
             <span class="font-mono text-[10px] text-faded">§2</span>
           </div>
@@ -543,23 +294,23 @@
 
       <!-- NEW: Definitions — TREATMENT D: ruled index-card w/ red margin rule -->
       <section data-reveal>
-        <span class="variant-tag block mb-2">treatment&nbsp;D · ruled notecard</span>
-        <div class="notecard p-6 pl-16">
+        <span class="mg-variant-tag block mb-2">treatment&nbsp;D · ruled mg-notecard</span>
+        <div class="mg-notecard p-6 pl-16">
           <div class="flex items-baseline gap-3 mb-4">
-            <h2 class="font-display text-2xl printed">Definitions</h2>
+            <h2 class="font-display text-2xl mg-printed">Definitions</h2>
             <div class="flex-1 h-px bg-ink/20"></div>
             <span class="font-mono text-[10px] text-faded">gloss.</span>
           </div>
           <dl class="font-serif text-[16px]">
-            <div class="line py-3">
+            <div class="mg-line py-3">
               <dt class="font-semibold inline">Margin.</dt>
               <dd class="inline text-faded"> The blank column where the reader answers back; lorem ipsum dolor sit amet.</dd>
             </div>
-            <div class="line py-3">
+            <div class="mg-line py-3">
               <dt class="font-semibold inline">Plate.</dt>
               <dd class="inline text-faded"> An immutable capture of a page, consectetur adipiscing elit sed do.</dd>
             </div>
-            <div class="line py-3">
+            <div class="mg-line py-3">
               <dt class="font-semibold inline">Halftone.</dt>
               <dd class="inline text-faded"> Continuous tone rendered as dots; eiusmod tempor incididunt ut labore.</dd>
             </div>
@@ -573,30 +324,30 @@
 
       <!-- NEW: Reading log — TREATMENT C: borderless soft halo entries -->
       <section data-reveal>
-        <span class="variant-tag block mb-2">treatment&nbsp;C · soft halo</span>
+        <span class="mg-variant-tag block mb-2">treatment&nbsp;C · soft halo</span>
         <div class="flex items-baseline gap-3 mb-6">
-          <h2 class="font-display text-2xl printed">Reading&nbsp;Log</h2>
+          <h2 class="font-display text-2xl mg-printed">Reading&nbsp;Log</h2>
           <div class="flex-1 h-px bg-ink/25"></div>
           <span class="font-mono text-[10px] text-faded">§3</span>
         </div>
         <ol class="space-y-8 border-l border-ink/20 pl-6 ml-2">
           <li class="relative">
-            <span class="absolute -left-[31px] top-1 w-3 h-3 rounded-full bg-rust halftone-fine"></span>
-            <div class="sheet-soft inline-block">
+            <span class="absolute -left-[31px] top-1 w-3 h-3 rounded-full bg-rust mg-halftone-fine"></span>
+            <div class="mg-sheet-soft inline-block">
               <span class="font-mono text-[10px] text-faded block mb-1">14 : 03 · today</span>
               <p class="font-serif text-[16px] leading-relaxed">Flagged the abstract's claim on hyperparameters. Duis aute irure dolor in reprehenderit voluptate.</p>
             </div>
           </li>
           <li class="relative">
-            <span class="absolute -left-[31px] top-1 w-3 h-3 rounded-full bg-slate halftone-fine"></span>
-            <div class="sheet-soft inline-block">
+            <span class="absolute -left-[31px] top-1 w-3 h-3 rounded-full bg-slate mg-halftone-fine"></span>
+            <div class="mg-sheet-soft inline-block">
               <span class="font-mono text-[10px] text-faded block mb-1">11 : 47 · today</span>
               <p class="font-serif text-[16px] leading-relaxed">Cross-referenced Figure 1 with last week's note on double descent. Excepteur sint occaecat.</p>
             </div>
           </li>
           <li class="relative">
-            <span class="absolute -left-[31px] top-1 w-3 h-3 rounded-full bg-ember halftone-fine"></span>
-            <div class="sheet-soft inline-block">
+            <span class="absolute -left-[31px] top-1 w-3 h-3 rounded-full bg-ember mg-halftone-fine"></span>
+            <div class="mg-sheet-soft inline-block">
               <span class="font-mono text-[10px] text-faded block mb-1">yesterday</span>
               <p class="font-serif text-[16px] leading-relaxed">Opened the paper. First pass, no marks yet. Sed ut perspiciatis unde omnis iste natus.</p>
             </div>
@@ -607,14 +358,14 @@
       <!-- data table (ledger style) -->
       <section data-reveal>
         <div class="flex items-baseline gap-3 mb-4">
-          <h2 class="font-display text-2xl printed">Results</h2>
+          <h2 class="font-display text-2xl mg-printed">Results</h2>
           <div class="flex-1 h-px bg-ink/25"></div>
           <span class="font-mono text-[10px] text-faded">tbl.1</span>
         </div>
-        <div class="sheet overflow-x-auto">
+        <div class="mg-sheet overflow-x-auto">
           <table class="w-full font-serif text-sm">
             <thead>
-              <tr class="rule-double bg-paper2/50 font-display text-left">
+              <tr class="mg-rule-double bg-paper2/50 font-display text-left">
                 <th class="px-4 py-2 font-normal">Method</th>
                 <th class="px-4 py-2 font-normal text-right">Params</th>
                 <th class="px-4 py-2 font-normal text-right">Speed</th>
@@ -633,8 +384,8 @@
 
       <!-- pull quote big -->
       <section class="relative py-8" data-reveal>
-        <div class="absolute inset-0 -mx-6 lg:-mx-10 bg-rust/90 halftone"></div>
-        <blockquote class="relative font-display italic text-3xl sm:text-4xl leading-tight text-paper px-6 lg:px-10 printed">
+        <div class="absolute inset-0 -mx-6 lg:-mx-10 bg-rust/90 mg-halftone"></div>
+        <blockquote class="relative font-display italic text-3xl sm:text-4xl leading-tight text-paper px-6 lg:px-10 mg-printed">
           “Two loss terms. One margin. The rest is just reading.”
         </blockquote>
       </section>
@@ -647,10 +398,10 @@
     <div class="max-w-7xl mx-auto px-6 lg:px-10 py-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
       <div class="flex items-center gap-3">
         <div class="flex">
-          <div class="w-4 h-4 rounded-full bg-rust halftone-fine"></div>
-          <div class="w-4 h-4 rounded-full bg-ember halftone-fine -ml-1.5"></div>
+          <div class="w-4 h-4 rounded-full bg-rust mg-halftone-fine"></div>
+          <div class="w-4 h-4 rounded-full bg-ember mg-halftone-fine -ml-1.5"></div>
         </div>
-        <span class="font-display text-lg printed">Marginalia</span>
+        <span class="font-display text-lg mg-printed">Marginalia</span>
       </div>
       <p class="font-mono text-[10px] uppercase tracking-[0.25em] text-faded">
         Set in Old Standard & Spectral · Printed on recycled pixels · © MMXXVI
@@ -659,133 +410,8 @@
   </footer>
 
   <!-- ============================ SCRIPTS ============================ -->
-  <script>
-    // Scroll-reveal: stagger content in as it enters the viewport
-    const io = new IntersectionObserver((entries) => {
-      entries.forEach((e, i) => {
-        if (e.isIntersecting) {
-          e.target.style.animationDelay = (i * 0.06) + 's';
-          e.target.classList.add('shown');
-          io.unobserve(e.target);
-        }
-      });
-    }, { threshold: 0.12 });
-    document.querySelectorAll('[data-reveal]').forEach(el => io.observe(el));
-
-    // Gentle parallax on the floating decorative shapes
-    const floats = document.querySelectorAll('.floaty');
-    window.addEventListener('scroll', () => {
-      const y = window.scrollY;
-      floats.forEach((el, i) => {
-        el.style.transform = `translateY(${y * (0.03 + i * 0.02)}px)`;
-      });
-    }, { passive: true });
-
-    // Re-seed the letterpress displacement each load so the ink "lands" differently
-    const f = document.querySelector('#inkrough feTurbulence');
-    if (f) {
-      const b = (0.010 + Math.random() * 0.006).toFixed(4);
-      f.setAttribute('baseFrequency', b + ' ' + (0.018 + Math.random() * 0.006).toFixed(4));
-    }
-  </script>
-
-  <!-- ---------- hand-drawn lines & boxes (rough.js) ---------- -->
-  <script>
-  (function () {
-    const SVGNS = 'http://www.w3.org/2000/svg';
-    const seed = (i) => Math.floor(((i + 1) * 2654435761) % 100000);
-
-    function overlay(w, h) {
-      const s = document.createElementNS(SVGNS, 'svg');
-      s.setAttribute('width', w);
-      s.setAttribute('height', h);
-      s.setAttribute('data-rough', '');
-      s.style.cssText = 'position:absolute;left:0;top:0;overflow:visible;pointer-events:none;z-index:1';
-      return s;
-    }
-    function host(el) {
-      if (getComputedStyle(el).position === 'static') el.style.position = 'relative';
-    }
-
-    // Build a linear gradient of the ink colour whose OPACITY wanders along
-    // the stroke — so the line looks darker in some places, fainter in others,
-    // like ink that didn't lay down evenly. Returns the gradient id.
-    let gid = 0;
-    function inkGradient(svg, diagonal, baseAlpha) {
-      const id = 'ink-grad-' + (gid++);
-      let defs = svg.querySelector('defs');
-      if (!defs) { defs = document.createElementNS(SVGNS, 'defs'); svg.appendChild(defs); }
-      const g = document.createElementNS(SVGNS, 'linearGradient');
-      g.setAttribute('id', id);
-      g.setAttribute('x1', '0'); g.setAttribute('y1', '0');
-      g.setAttribute('x2', '1'); g.setAttribute('y2', diagonal ? '1' : '0');
-      const stops = 5 + Math.floor(Math.random() * 3);
-      for (let i = 0; i < stops; i++) {
-        const s = document.createElementNS(SVGNS, 'stop');
-        s.setAttribute('offset', ((i / (stops - 1)) * 100).toFixed(1) + '%');
-        s.setAttribute('stop-color', 'rgb(28,26,23)');
-        // opacity drifts gently around the base value
-        const a = baseAlpha * (0.75 + Math.random() * 0.5);
-        s.setAttribute('stop-opacity', Math.max(0.2, Math.min(0.72, a)).toFixed(3));
-        g.appendChild(s);
-      }
-      defs.appendChild(g);
-      return id;
-    }
-
-    function paint(node, id) {
-      node.querySelectorAll('path').forEach((p) => p.setAttribute('stroke', 'url(#' + id + ')'));
-    }
-
-    function draw() {
-      if (!window.rough) return;
-      document.querySelectorAll('[data-rough]').forEach((s) => s.remove());
-
-      // --- boxes: single hand-drawn frame, opacity varying around the frame ---
-      document.querySelectorAll('.sheet, .notecard, .sketch-box').forEach((el, i) => {
-        const w = el.clientWidth, h = el.clientHeight;
-        if (!w || !h) return;
-        host(el);
-        const svg = overlay(w, h);
-        const rc = rough.svg(svg);
-        const id = inkGradient(svg, true, 0.55);
-        const node = rc.rectangle(2, 2, w - 4, h - 4, {
-          roughness: 0.6, bowing: 0.4, strokeWidth: 0.9, seed: seed(i),
-        });
-        node.setAttribute('filter', 'url(#inkbreak)');
-        paint(node, id);
-        svg.appendChild(node);
-        el.appendChild(svg);
-        el.style.borderColor = 'transparent';   // hide the straight border
-      });
-
-      // --- horizontal rules: single line, opacity varying along its length ---
-      document.querySelectorAll('.h-px').forEach((el, i) => {
-        const w = el.clientWidth;
-        if (!w) return;
-        host(el);
-        const H = 12, y = H / 2;
-        const svg = overlay(w, H);
-        svg.style.top = -(H / 2) + 'px';
-        const rc = rough.svg(svg);
-        const id = inkGradient(svg, false, 0.55);
-        const node = rc.line(1, y, w - 1, y, {
-          roughness: 0.5, bowing: 0.5, strokeWidth: 0.9, seed: seed(i + 900),
-        });
-        node.setAttribute('filter', 'url(#inkbreak)');
-        paint(node, id);
-        svg.appendChild(node);
-        el.appendChild(svg);
-        el.style.background = 'transparent';     // hide the straight rule
-      });
-    }
-
-    let t;
-    const schedule = () => { clearTimeout(t); t = setTimeout(draw, 120); };
-    window.addEventListener('load', () => setTimeout(draw, 60));
-    window.addEventListener('resize', schedule);
-    if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => setTimeout(draw, 60));
-  })();
-  </script>
+  <script src="js/filters.js"></script>
+  <script src="js/interactions.js"></script>
+  <script src="js/ink-lines.js"></script>
 </body>
 </html>

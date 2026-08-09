@@ -1,0 +1,56 @@
+/* ============================================================================
+   TOKENS — the vocabulary of the system.
+   Every design decision (colour, type, texture) has a name here, and one place
+   to change it. Nothing in this file draws anything; it only names values.
+
+   Colours are stored as "r g b" triplets (not #hex) so Tailwind and CSS can
+   add any opacity to them, e.g.  rgb(var(--rgb-rust) / .25).
+   ========================================================================== */
+
+:root {
+  /* ---- Colour: single source of truth (r g b triplets) ---- */
+  --rgb-paper:   236 231 219;   /* off-white mg-sheet */
+  --rgb-paper2:  228 222 206;   /* slightly warmer paper */
+  --rgb-panel:   240 235 224;   /* tint behind text panels */
+  --rgb-ink:      28  26  23;   /* near-black type */
+  --rgb-faded:    74  70  61;   /* muted text / captions */
+  --rgb-rust:    192  83  42;   /* deep mg-printed orange */
+  --rgb-ember:   230 116  43;   /* bright accent orange */
+  --rgb-coral:   221 165 136;   /* pale salmon */
+  --rgb-slate:   174 178 191;   /* grey-blue */
+  --rgb-grid:    120 110  90;   /* drafting grid lines */
+  --rgb-regmark: 201 138 114;   /* faint red registration guides */
+
+  /* ---- Convenience solids for plain CSS: color: var(--color-rust) ---- */
+  --color-paper:  rgb(var(--rgb-paper));
+  --color-paper2: rgb(var(--rgb-paper2));
+  --color-ink:    rgb(var(--rgb-ink));
+  --color-faded:  rgb(var(--rgb-faded));
+  --color-rust:   rgb(var(--rgb-rust));
+  --color-ember:  rgb(var(--rgb-ember));
+  --color-coral:  rgb(var(--rgb-coral));
+  --color-slate:  rgb(var(--rgb-slate));
+
+  /* ---- Type ---- */
+  --font-display: "Old Standard TT", Georgia, serif;   /* headings, masthead */
+  --font-serif:   "Spectral", Georgia, serif;          /* body reading text */
+  --font-mono:    "IBM Plex Mono", ui-monospace, monospace; /* labels, meta */
+
+  --tracking-body:    -0.015em;   /* global letter-spacing */
+  --tracking-display: -0.03em;    /* headings pulled in tighter */
+  --tracking-serif:   -0.012em;   /* reading text */
+
+  /* ---- Paper texture (the stippled "dotted bumps") ---- */
+  --dot-rgb:           250 246 238;  /* dots, a touch lighter than the paper */
+  --dot-alpha:         0.6;
+  --dot-size:          9px;          /* spacing of the weave */
+  --dot-layer-opacity: 0.55;         /* how present the whole texture is */
+
+  /* ---- Drafting grid ---- */
+  --grid-step:    96px;   /* coarse squares */
+  --grid-substep: 24px;   /* fine squares */
+
+  /* ---- Panel opacities (how much paper shows through text panels) ---- */
+  --panel-alpha:  0.72;
+  --halo-alpha:   0.66;
+}
