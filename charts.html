@@ -33,7 +33,7 @@
     .doc-h2 { font-family: var(--font-display); font-size: 2rem; }
     /* let vega SVG size to its plate */
     .vega-embed, .vega-embed svg { width: 100%; }
-    .mermaid svg { max-width: 100%; height: auto; }
+    #diagram svg { max-width: 100%; height: auto; filter: url(#inkfaint); }  /* subtle hand-inked wobble */
 
     /* themed vega-tooltip popup (re-themes via tokens) */
     #vg-tooltip-element.vg-tooltip {
@@ -192,8 +192,8 @@
       </div>
       <figcaption class="mt-3 font-serif text-sm text-faded leading-relaxed">
         <span class="italic font-semibold text-ink">Figure E.</span>
-        The training pipeline as a Mermaid flowchart (hand-drawn look). Written as
-        five lines of text, not placed by hand.
+        The training pipeline as a Mermaid flowchart, lightly inked. Written as five
+        lines of text, not placed by hand.
       </figcaption>
     </figure>
   </main>

@@ -19,7 +19,7 @@
     return {
       startOnLoad: false,
       securityLevel: 'loose',
-      look: 'handDrawn',
+      look: 'classic',        // clean shapes; a faint ink filter (CSS) adds the hand-inked feel
       theme: 'base',
       fontFamily: DISPLAY,
       themeVariables: {

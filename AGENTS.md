@@ -164,10 +164,13 @@ function NoteCard({ title, body }) {
 ## Charts & diagrams
 
 Do NOT hand-place SVG points. Use the libraries with the locked presets, so new
-visuals get the house style and correct scales from data.
+visuals get the house style and correct scales from data. `charts.html` is the
+canonical reference — copy a figure from it and change the data.
 
-**Charts — Vega-Lite.** Load `vega`, `vega-lite`, `vega-embed`, and
-`js/mg-vega-theme.js`. Write a spec and merge the house config:
+### Charts — Vega-Lite
+
+Load `vega`, `vega-lite`, `vega-embed`, and `js/mg-vega-theme.js`. Write a spec,
+merge the house config, render as SVG:
 
 ```js
 vegaEmbed('#el', {
@@ -178,24 +181,66 @@ vegaEmbed('#el', {
     y: { field: 'price', type: 'quantitative' },
   },
   config: mgVegaConfig(),          // house style from tokens
-}, { renderer: 'svg' });
+}, { renderer: 'svg' });           // SVG so ink/fonts/tooltips apply
 ```
 
-- The palette is **single-accent**. One series = rust, no legend.
-- For >1 series, encode identity with `strokeDash` **and** direct labels — never
-  colour alone (the brand palette is not a categorical palette).
-- Re-embed on a theme switch so `mgVegaConfig()` re-reads the tokens.
+**The preset (`mgVegaConfig()`) already themes** the background (transparent),
+fonts (mono labels, serif titles), faint horizontal gridlines, 12px axis
+labels, legend colours, and the single-accent mark colours — all from tokens.
+Do not restate these per spec.
 
-**Diagrams — Mermaid.** Load `mermaid` and `js/mermaid-init.js`:
+**Layout conventions (match the figures in `charts.html`):**
+- **Header lives in HTML, not the chart.** Put a title/subtitle (or a metric
+  header: label + big number left, delta + note right) in the plate above the
+  `<div>`, using `font-display` + `mg-mono-label`. Do not set a Vega `title`.
+- **Few, clean ticks.** Set `axis.values` (e.g. `[60,90,120,150]`) instead of
+  letting Vega pick many. Turn off the x grid (`axis:{grid:false}`).
+- **Gaps.** Give the x scale `padding: 16` so the marks clear the axes.
+- **Line ≠ area-to-zero.** For a line/area that shouldn't start at zero, set
+  `y.scale:{ domain:[lo,hi], zero:false }`.
+
+**Colour — the palette is single-accent:**
+- **One series → rust**, no legend. Best case (see Figure A/B).
+- **Many series on one chart → the validated categorical tokens**
+  `--cat-1..4` (orange / steel / sage / plum; dark-theme variants exist). Set
+  `color.scale.range` to `[rgb('--cat-1'), …]`. Never invent hues, never rely on
+  colour alone for >4 — fold extras into "Other" or small multiples.
+- Do not use `strokeDash` for identity when colour already distinguishes series.
+
+**Hover (add it to every chart):** use a **single** nearest-point selection —
+two `nearest` selections fight over the pointer. It drives the crosshair, the
+dot, the tooltip, and the line emphasis together:
 
 ```js
-mermaid.initialize(mgMermaidTheme());
+params: [{ name:'pick', select:{ type:'point', fields:['series','x'], nearest:true,
+                                  on:'pointerover', clear:'pointerout' } }],
+```
+- Crosshair: a `rule` layer filtered by `{param:'pick'}`.
+- Dot + tooltip: an invisible `point` capture layer; `opacity` shows the dot on
+  hover; `tooltip:[…]` is the popup.
+- Emphasis: on the line layer, dim non-hovered lines with a `test` on the
+  selection store (`pluck(data('pick_store'),'values')[0][0] === datum.series`);
+  add a legend-bound `point` param for legend-hover too.
+- The tooltip is styled once via `#vg-tooltip-element.vg-tooltip` CSS and
+  re-themes with tokens.
+
+**Re-embed on a theme switch** so `mgVegaConfig()` and the spec colours re-read
+the tokens (listen on the `data-theme-set` buttons; see `charts.html`).
+
+### Diagrams — Mermaid
+
+Load `mermaid` and `js/mermaid-init.js`:
+
+```js
+mermaid.initialize(mgMermaidTheme());   // classic look, themed from tokens
 const { svg } = await mermaid.render('id', 'flowchart LR\n A --> B --> C');
 el.innerHTML = svg;
 ```
 
-Re-initialise and re-render on a theme switch. See `charts.html` for a working
-page (line/area, bar, two-series, and a pipeline diagram), themed live.
+- `mgMermaidTheme()` themes nodes/edges/text from tokens.
+- Apply `filter: url(#inkfaint)` to the diagram's `svg` in CSS for the subtle
+  hand-inked wobble (requires `js/filters.js`).
+- Re-initialise and re-render on a theme switch.
 
 ## Tests
 
