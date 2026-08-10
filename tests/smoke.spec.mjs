@@ -49,6 +49,18 @@ test('charts & diagram render SVGs in light and dark', async ({ page }) => {
   }
 });
 
+test('price chart time-range buttons re-render and update the header', async ({ page }) => {
+  await page.goto(url('charts.html'), { waitUntil: 'load' });
+  await page.waitForTimeout(2500);
+  const label = page.locator('#px-label');
+  await expect(label).toContainText('1-month');
+  await page.click('[data-range="MAX"]');
+  await page.waitForTimeout(1200);
+  await expect(label).toContainText('all-time');
+  await expect(page.locator('#chart-price svg')).toHaveCount(1);
+  await expect(page.locator('[data-range="MAX"]')).toHaveClass(/is-active/);
+});
+
 test('demo page reveals its figures (no stuck opacity:0)', async ({ page }) => {
   await page.goto(url('index.html'), { waitUntil: 'load' });
   // scroll so the reveal observer fires

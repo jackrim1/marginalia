@@ -103,14 +103,21 @@
         <div class="flex items-baseline justify-between mb-5">
           <div>
             <div class="mg-mono-label">Ticker · LeWM</div>
-            <div class="font-display text-4xl text-ink leading-none mt-1">$142.80</div>
+            <div id="px-value" class="font-display text-4xl text-ink leading-none mt-1">$142.80</div>
           </div>
           <div class="text-right">
-            <div class="font-mono text-sm text-rust">&#9650; 12.4%</div>
-            <div class="mg-mono-label mt-1">30-day close</div>
+            <div id="px-delta" class="font-mono text-sm text-rust">&#9650; 12.4%</div>
+            <div id="px-label" class="mg-mono-label mt-1">1-month close</div>
           </div>
         </div>
         <div id="chart-price"></div>
+        <div class="mt-4 flex items-center gap-1.5" role="group" aria-label="Time range">
+          <button class="mg-range" data-range="24H">24H</button>
+          <button class="mg-range" data-range="1W">1W</button>
+          <button class="mg-range" data-range="1M">1M</button>
+          <button class="mg-range" data-range="1Y">1Y</button>
+          <button class="mg-range" data-range="MAX">MAX</button>
+        </div>
       </div>
       <figcaption class="mt-3 font-serif text-sm text-faded leading-relaxed">
         <span class="italic font-semibold text-ink">Figure A.</span>
@@ -211,11 +218,43 @@
   const rgb = (n) => `rgb(${tok(n).replace(/\s+/g, ',')})`;
 
   // ---- data ----
-  const priceData = [
-    ['2026-01-01',118],['2026-02-01',122],['2026-03-01',120],['2026-04-01',131],
-    ['2026-05-01',128],['2026-06-01',139],['2026-07-01',142],['2026-08-01',137],
-    ['2026-09-01',146],['2026-10-01',151],['2026-11-01',148],['2026-12-01',158],
-  ].map(([date, price]) => ({ date, price }));
+  // Synthetic price history (stands in for real feeds): daily out to 2 years,
+  // hourly for the last 24h. Seeded so it is stable across reloads and tests.
+  function mulberry32(a) {
+    return function () {
+      a |= 0; a = (a + 0x6D2B79F5) | 0;
+      let t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  const PRICE_HISTORY = (() => {
+    const END = Date.parse('2026-08-10T00:00:00Z');
+    const rnd = mulberry32(20260810);
+    const daily = [];
+    let p = 86;
+    for (let i = 729; i >= 0; i--) {
+      p = Math.max(45, p + (rnd() - 0.46) * 2.4);   // gentle upward random walk
+      daily.push({ date: new Date(END - i * 86400000).toISOString(), price: +p.toFixed(2) });
+    }
+    const hourly = [];
+    let hp = daily[daily.length - 1].price;
+    for (let i = 23; i >= 0; i--) {
+      hp = Math.max(45, hp + (rnd() - 0.5) * 0.9);
+      hourly.push({ date: new Date(END - i * 3600000).toISOString(), price: +hp.toFixed(2) });
+    }
+    return { daily, hourly };
+  })();
+
+  // time-range presets for the price chart
+  const RANGES = {
+    '24H': { data: PRICE_HISTORY.hourly,             fmt: '%H:%M',   ticks: 6, tip: '%b %d, %H:%M', label: '24-hour' },
+    '1W':  { data: PRICE_HISTORY.daily.slice(-7),    fmt: '%a %d',   ticks: 7, tip: '%b %d, %Y',    label: '1-week' },
+    '1M':  { data: PRICE_HISTORY.daily.slice(-30),   fmt: '%b %d',   ticks: 6, tip: '%b %d, %Y',    label: '1-month' },
+    '1Y':  { data: PRICE_HISTORY.daily.slice(-365),  fmt: '%b',      ticks: 6, tip: '%b %d, %Y',    label: '1-year' },
+    'MAX': { data: PRICE_HISTORY.daily,              fmt: '%b %Y',   ticks: 6, tip: '%b %d, %Y',    label: 'all-time' },
+  };
+  let currentTf = '1M';
 
   const barData = [
     { method: 'Baseline', score: 64.8 },
@@ -242,18 +281,22 @@
 
   // ---- specs (width measured from the container, in px) ----
   function priceSpec(w) {
+    const R = RANGES[currentTf];
+    const ys = R.data.map((d) => d.price);
+    const lo = Math.min(...ys), hi = Math.max(...ys);
+    const pad = (hi - lo) * 0.12 || 4;               // padded window so the wash stays contained
     return {
       $schema: 'https://vega.github.io/schema/vega-lite/v5.json',
       config: houseConfig(),
       width: w, height: 220,
-      data: { values: priceData },
+      data: { values: R.data },
       encoding: {
         x: { field: 'date', type: 'temporal',
              scale: { padding: 16 },                 // gap between the line and the axes
-             axis: { format: '%b', tickCount: 4, grid: false }, title: null },
+             axis: { format: R.fmt, tickCount: R.ticks, grid: false }, title: null },
         y: { field: 'price', type: 'quantitative',
-             scale: { domain: [48, 170], zero: false, clamp: true },
-             axis: { values: [60, 90, 120, 150], format: '$d' },
+             scale: { domain: [Math.max(0, lo - pad), hi + pad], zero: false, clamp: true },
+             axis: { tickCount: 5, format: '$d' },
              title: null },
       },
       layer: [
@@ -269,7 +312,7 @@
           encoding: {
             opacity: { condition: { param: 'hover', empty: false, value: 1 }, value: 0 },
             tooltip: [
-              { field: 'date', type: 'temporal', title: 'Date', format: '%b %Y' },
+              { field: 'date', type: 'temporal', title: 'Date', format: R.tip },
               { field: 'price', type: 'quantitative', title: 'Close', format: '$.2f' },
             ],
           },
@@ -477,7 +520,39 @@
     window.dispatchEvent(new Event('resize'));
   }
 
-  window.addEventListener('load', renderAll);
+  // re-embed just the price chart (used by the time-range buttons)
+  function embedPrice() {
+    if (!window.vegaEmbed) return Promise.resolve();
+    return vegaEmbed('#chart-price', priceSpec(widthOf('chart-price')), { actions: false, renderer: 'svg' })
+      .catch((e) => fail('chart-price', 'chart error: ' + e.message));
+  }
+
+  // update the ticker header (price, % change, label) for the current range
+  function updatePriceHeader() {
+    const R = RANGES[currentTf], d = R.data;
+    if (!d.length) return;
+    const first = d[0].price, last = d[d.length - 1].price;
+    const pct = ((last - first) / first) * 100, up = pct >= 0;
+    const set = (id, txt, cls) => { const el = document.getElementById(id); if (el) { el.textContent = txt; if (cls) el.className = cls; } };
+    set('px-value', '$' + last.toFixed(2));
+    set('px-delta', (up ? '▲ ' : '▼ ') + Math.abs(pct).toFixed(1) + '%', 'font-mono text-sm ' + (up ? 'text-rust' : 'text-faded'));
+    set('px-label', R.label + ' close');
+  }
+
+  function setRange(tf) {
+    currentTf = tf;
+    document.querySelectorAll('[data-range]').forEach((b) => b.classList.toggle('is-active', b.getAttribute('data-range') === tf));
+    updatePriceHeader();
+    embedPrice().then(() => window.dispatchEvent(new Event('resize')));
+  }
+  document.querySelectorAll('[data-range]').forEach((b) =>
+    b.addEventListener('click', () => setRange(b.getAttribute('data-range'))));
+
+  window.addEventListener('load', () => {
+    document.querySelectorAll('[data-range]').forEach((b) => b.classList.toggle('is-active', b.getAttribute('data-range') === currentTf));
+    updatePriceHeader();
+    renderAll();
+  });
   // re-render after a theme switch (theme.js flips data-theme on click)
   document.querySelectorAll('[data-theme-set]').forEach((b) =>
     b.addEventListener('click', () => setTimeout(renderAll, 80)));

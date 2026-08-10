@@ -224,6 +224,13 @@ params: [{ name:'pick', select:{ type:'point', fields:['series','x'], nearest:tr
 - The tooltip is styled once via `#vg-tooltip-element.vg-tooltip` CSS and
   re-themes with tokens.
 
+**Time ranges (for time-series):** put a row of `.mg-range` pills beneath the
+plot (24H / 1W / 1M / 1Y / MAX; the active one is filled). On click, window the
+data to that range, recompute a padded y-domain (`[min-pad, max+pad]`, not zero —
+an area mark otherwise forces a zero baseline), set the per-range x tick format,
+update the header price/%-change/label, and re-embed just that chart. See the
+price chart in `charts.html`.
+
 **Re-embed on a theme switch** so `mgVegaConfig()` and the spec colours re-read
 the tokens (listen on the `data-theme-set` buttons; see `charts.html`).
 

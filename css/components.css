@@ -148,6 +148,25 @@
   border-color: rgb(var(--rgb-ink));
 }
 
+/* ---- Chart time-range pills ---- */
+.mg-range {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-faded);
+  border: 1px solid rgb(var(--rgb-ink) / .22);
+  padding: 0.2rem 0.55rem;
+  cursor: pointer;
+  transition: color .15s, background .15s, border-color .15s;
+}
+.mg-range:hover { color: var(--color-rust); border-color: rgb(var(--rgb-rust) / .6); }
+.mg-range.is-active {
+  background: rgb(var(--rgb-rust));
+  color: rgb(var(--rgb-paper));
+  border-color: rgb(var(--rgb-rust));
+}
+
 /* doc-only comparison label used on the demo page */
 .mg-variant-tag {
   font-family: var(--font-mono);
