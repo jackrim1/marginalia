@@ -61,6 +61,16 @@ test('price chart time-range buttons re-render and update the header', async ({ 
   await expect(page.locator('[data-range="MAX"]')).toHaveClass(/is-active/);
 });
 
+test('sector chart time-range buttons re-render and relabel', async ({ page }) => {
+  await page.goto(url('charts.html'), { waitUntil: 'load' });
+  await page.waitForTimeout(2500);
+  await page.click('[data-srange="1Y"]');
+  await page.waitForTimeout(1200);
+  await expect(page.locator('#sector-label')).toContainText('1-year');
+  await expect(page.locator('#chart-sector svg')).toHaveCount(1);
+  await expect(page.locator('[data-srange="1Y"]')).toHaveClass(/is-active/);
+});
+
 test('demo page reveals its figures (no stuck opacity:0)', async ({ page }) => {
   await page.goto(url('index.html'), { waitUntil: 'load' });
   // scroll so the reveal observer fires

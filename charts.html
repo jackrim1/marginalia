@@ -176,15 +176,22 @@
         <span class="mg-crop" style="bottom:6px;right:6px;transform:scale(-1)"></span>
         <div class="mb-5">
           <div class="font-display text-xl text-ink leading-none">Sector · indexed to 100</div>
-          <div class="mg-mono-label mt-1">four tickers, one chart</div>
+          <div id="sector-label" class="mg-mono-label mt-1">four tickers · 1-month</div>
         </div>
         <div id="chart-sector"></div>
+        <div class="mt-4 flex items-center gap-1.5" role="group" aria-label="Time range">
+          <button class="mg-range" data-srange="24H">24H</button>
+          <button class="mg-range" data-srange="1W">1W</button>
+          <button class="mg-range" data-srange="1M">1M</button>
+          <button class="mg-range" data-srange="1Y">1Y</button>
+          <button class="mg-range" data-srange="MAX">MAX</button>
+        </div>
       </div>
       <figcaption class="mt-3 font-serif text-sm text-faded leading-relaxed">
         <span class="italic font-semibold text-ink">Figure D.</span>
         Multiple stocks overlaid on one chart, one colour each from the validated
-        categorical palette. Hover near a line to lift it, dim the rest, and read a
-        tooltip for that point; a legend entry does the same.
+        categorical palette. Pick a range to rebase all four to 100 at the window
+        start; hover a line to lift it, dim the rest, and read its value.
       </figcaption>
     </figure>
 
@@ -268,16 +275,55 @@
     lossData.push({ step: s * 1000, series: 'val',   loss: +(0.95 * Math.exp(-s / 3.4) + 0.05).toFixed(3) });
   }
 
-  // multiple stocks, indexed to 100 — rendered as small multiples
-  const SECT = [
-    { t: 'LeWM', base: [100, 104, 101, 108, 112, 110, 118, 122, 126, 131, 129, 138] },
-    { t: 'JEPA', base: [100, 102, 103, 101, 105, 108, 107, 110, 112, 111, 115, 118] },
-    { t: 'SIGR', base: [100, 99, 101, 98, 96, 97, 95, 94, 92, 93, 91, 92] },
-    { t: 'MRGN', base: [100, 106, 103, 110, 108, 115, 112, 120, 124, 119, 128, 135] },
-  ];
-  const sectorData = [];
-  SECT.forEach((s) => s.base.forEach((v, i) =>
-    sectorData.push({ ticker: s.t, m: `2026-${String(i + 1).padStart(2, '0')}-01`, v })));
+  // multiple stocks: synthetic history per ticker (daily 2y + hourly 24h),
+  // rebased to 100 at the start of the visible window when charted.
+  const SECTOR_HISTORY = (() => {
+    const END = Date.parse('2026-08-10T00:00:00Z');
+    const defs = [
+      { t: 'LeWM', seed: 11, start: 80,  drift: 0.10 },
+      { t: 'JEPA', seed: 22, start: 95,  drift: 0.04 },
+      { t: 'SIGR', seed: 33, start: 120, drift: -0.03 },
+      { t: 'MRGN', seed: 44, start: 70,  drift: 0.09 },
+    ];
+    const daily = [], hourly = [];
+    defs.forEach((d) => {
+      const rnd = mulberry32(d.seed * 1000 + 7);
+      let p = d.start;
+      for (let i = 729; i >= 0; i--) {
+        p = Math.max(20, p + (rnd() - 0.5) * 1.8 + d.drift);
+        daily.push({ ticker: d.t, date: new Date(END - i * 86400000).toISOString(), price: +p.toFixed(2) });
+      }
+      let hp = p;
+      for (let i = 23; i >= 0; i--) {
+        hp = Math.max(20, hp + (rnd() - 0.5) * 0.6);
+        hourly.push({ ticker: d.t, date: new Date(END - i * 3600000).toISOString(), price: +hp.toFixed(2) });
+      }
+    });
+    return { daily, hourly };
+  })();
+
+  const SRANGES = {
+    '24H': { src: 'hourly', n: 24,       fmt: '%H:%M', ticks: 6, tip: '%b %d, %H:%M', label: '24-hour' },
+    '1W':  { src: 'daily',  n: 7,        fmt: '%a %d', ticks: 7, tip: '%b %d, %Y',    label: '1-week' },
+    '1M':  { src: 'daily',  n: 30,       fmt: '%b %d', ticks: 6, tip: '%b %d, %Y',    label: '1-month' },
+    '1Y':  { src: 'daily',  n: 365,      fmt: '%b',    ticks: 6, tip: '%b %d, %Y',    label: '1-year' },
+    'MAX': { src: 'daily',  n: Infinity, fmt: '%b %Y', ticks: 6, tip: '%b %d, %Y',    label: 'all-time' },
+  };
+  let currentSf = '1M';
+
+  // window + rebase each ticker to 100 at the window's first point
+  function sectorWindow(S) {
+    const byT = {};
+    SECTOR_HISTORY[S.src].forEach((r) => { (byT[r.ticker] ||= []).push(r); });
+    const rows = [];
+    Object.keys(byT).forEach((t) => {
+      let arr = byT[t];
+      if (S.n !== Infinity) arr = arr.slice(-S.n);
+      const first = arr[0].price;
+      arr.forEach((r) => rows.push({ ticker: t, date: r.date, v: +(r.price / first * 100).toFixed(2) }));
+    });
+    return rows;
+  }
 
   // ---- specs (width measured from the container, in px) ----
   function priceSpec(w) {
@@ -419,27 +465,31 @@
   function sectorSpec(w) {
     const TK = ['LeWM', 'JEPA', 'SIGR', 'MRGN'];
     const colors = [rgb('--cat-1'), rgb('--cat-2'), rgb('--cat-3'), rgb('--cat-4')];
+    const S = SRANGES[currentSf];
+    const rows = sectorWindow(S);
+    const vs = rows.map((r) => r.v);
+    const lo = Math.min(...vs), hi = Math.max(...vs), pad = (hi - lo) * 0.1 || 4;
     return {
       $schema: 'https://vega.github.io/schema/vega-lite/v5.json',
       config: houseConfig(),
       width: w, height: 240,
-      data: { values: sectorData },
+      data: { values: rows },
       encoding: {
-        x: { field: 'm', type: 'temporal', scale: { padding: 16 },
-             axis: { format: '%b', tickCount: 4, grid: false }, title: null },
+        x: { field: 'date', type: 'temporal', scale: { padding: 16 },
+             axis: { format: S.fmt, tickCount: S.ticks, grid: false }, title: null },
       },
       layer: [
-        { // crosshair at the hovered point's month
+        { // crosshair at the hovered point
           transform: [{ filter: { param: 'pick', empty: false } }],
           mark: { type: 'rule', color: rgb('--rgb-ink'), opacity: 0.45, strokeDash: [2, 3] },
-          encoding: { x: { field: 'm', type: 'temporal' } },
+          encoding: { x: { field: 'date', type: 'temporal' } },
         },
         { // solid lines; emphasis on plot-hover (nearest) OR legend-hover
           params: [{ name: 'hi', select: { type: 'point', fields: ['ticker'], on: 'pointerover', clear: 'pointerout' }, bind: 'legend' }],
           mark: { type: 'line' },
           encoding: {
-            y: { field: 'v', type: 'quantitative', scale: { domain: [86, 144], zero: false },
-                 axis: { values: [100, 120, 140] }, title: null },
+            y: { field: 'v', type: 'quantitative', scale: { domain: [lo - pad, hi + pad], zero: false },
+                 axis: { tickCount: 5 }, title: null },
             color: { field: 'ticker', type: 'nominal', sort: TK,
                      scale: { domain: TK, range: colors }, legend: { orient: 'top-left', title: null } },
             opacity: {
@@ -460,7 +510,7 @@
           },
         },
         { // invisible capture points -> nearest selection, hover dot + tooltip
-          params: [{ name: 'pick', select: { type: 'point', fields: ['ticker', 'm'], nearest: true, on: 'pointerover', clear: 'pointerout' } }],
+          params: [{ name: 'pick', select: { type: 'point', fields: ['ticker', 'date'], nearest: true, on: 'pointerover', clear: 'pointerout' } }],
           mark: { type: 'point', filled: true, size: 66 },
           encoding: {
             y: { field: 'v', type: 'quantitative' },
@@ -468,8 +518,8 @@
             opacity: { condition: { param: 'pick', empty: false, value: 1 }, value: 0 },
             tooltip: [
               { field: 'ticker', title: 'Ticker' },
-              { field: 'm', type: 'temporal', title: 'Month', format: '%b %Y' },
-              { field: 'v', type: 'quantitative', title: 'Index', format: '.0f' },
+              { field: 'date', type: 'temporal', title: 'When', format: S.tip },
+              { field: 'v', type: 'quantitative', title: 'Index', format: '.1f' },
             ],
           },
         },
@@ -548,8 +598,27 @@
   document.querySelectorAll('[data-range]').forEach((b) =>
     b.addEventListener('click', () => setRange(b.getAttribute('data-range'))));
 
+  // ---- sector (multi-stock) time range ----
+  function embedSector() {
+    if (!window.vegaEmbed) return Promise.resolve();
+    return vegaEmbed('#chart-sector', sectorSpec(widthOf('chart-sector')), { actions: false, renderer: 'svg' })
+      .catch((e) => fail('chart-sector', 'chart error: ' + e.message));
+  }
+  function setSRange(tf) {
+    currentSf = tf;
+    document.querySelectorAll('[data-srange]').forEach((b) => b.classList.toggle('is-active', b.getAttribute('data-srange') === tf));
+    const lab = document.getElementById('sector-label');
+    if (lab) lab.textContent = 'four tickers · ' + SRANGES[tf].label;
+    embedSector().then(() => window.dispatchEvent(new Event('resize')));
+  }
+  document.querySelectorAll('[data-srange]').forEach((b) =>
+    b.addEventListener('click', () => setSRange(b.getAttribute('data-srange'))));
+
   window.addEventListener('load', () => {
     document.querySelectorAll('[data-range]').forEach((b) => b.classList.toggle('is-active', b.getAttribute('data-range') === currentTf));
+    document.querySelectorAll('[data-srange]').forEach((b) => b.classList.toggle('is-active', b.getAttribute('data-srange') === currentSf));
+    const lab = document.getElementById('sector-label');
+    if (lab) lab.textContent = 'four tickers · ' + SRANGES[currentSf].label;
     updatePriceHeader();
     renderAll();
   });
