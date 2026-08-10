@@ -34,7 +34,7 @@ for (const f of PAGES) {
   });
 }
 
-const CHART_IDS = ['chart-price', 'chart-bar', 'chart-loss', 'diagram'];
+const CHART_IDS = ['chart-price', 'chart-bar', 'chart-loss', 'chart-sector', 'diagram'];
 
 test('charts & diagram render SVGs in light and dark', async ({ page }) => {
   await page.goto(url('charts.html'), { waitUntil: 'load' });

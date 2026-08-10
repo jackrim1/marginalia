@@ -34,6 +34,21 @@
     /* let vega SVG size to its plate */
     .vega-embed, .vega-embed svg { width: 100%; }
     .mermaid svg { max-width: 100%; height: auto; }
+
+    /* themed vega-tooltip popup (re-themes via tokens) */
+    #vg-tooltip-element.vg-tooltip {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      background: rgb(var(--rgb-panel));
+      color: rgb(var(--rgb-ink));
+      border: 1px solid rgb(var(--rgb-ink) / .3);
+      border-radius: 0;
+      box-shadow: 0 8px 22px -10px rgba(0,0,0,.55);
+      padding: 7px 10px;
+    }
+    #vg-tooltip-element.vg-tooltip h2 { font-family: var(--font-display); font-size: 13px; margin: 0 0 3px; }
+    #vg-tooltip-element.vg-tooltip .key   { color: rgb(var(--rgb-faded)); padding-right: 10px; }
+    #vg-tooltip-element.vg-tooltip .value { color: rgb(var(--rgb-ink)); }
   </style>
 </head>
 
@@ -144,6 +159,26 @@
       </figcaption>
     </figure>
 
+    <!-- Chart 4: multiple stocks as small multiples -->
+    <figure data-reveal>
+      <div class="mg-sketch-box relative border border-ink/30 bg-paper2/30 p-6 overflow-hidden">
+        <span class="mg-crop" style="top:6px;left:6px"></span>
+        <span class="mg-crop" style="top:6px;right:6px;transform:scaleX(-1)"></span>
+        <span class="mg-crop" style="bottom:6px;left:6px;transform:scaleY(-1)"></span>
+        <span class="mg-crop" style="bottom:6px;right:6px;transform:scale(-1)"></span>
+        <div class="mb-5">
+          <div class="font-display text-xl text-ink leading-none">Sector · indexed to 100</div>
+          <div class="mg-mono-label mt-1">12-month, four tickers</div>
+        </div>
+        <div id="chart-sector"></div>
+      </div>
+      <figcaption class="mt-3 font-serif text-sm text-faded leading-relaxed">
+        <span class="italic font-semibold text-ink">Figure D.</span>
+        Multiple stocks as small multiples — one accent line each on a shared scale,
+        with hover for the point value. The single-accent way to compare many series.
+      </figcaption>
+    </figure>
+
     <!-- Diagram: Mermaid pipeline -->
     <figure data-reveal>
       <div class="mg-sketch-box relative border border-ink/30 bg-paper2/30 p-6 overflow-hidden">
@@ -154,7 +189,7 @@
         <div id="diagram" class="mermaid-host flex justify-center"></div>
       </div>
       <figcaption class="mt-3 font-serif text-sm text-faded leading-relaxed">
-        <span class="italic font-semibold text-ink">Figure D.</span>
+        <span class="italic font-semibold text-ink">Figure E.</span>
         The training pipeline as a Mermaid flowchart (hand-drawn look). Written as
         five lines of text, not placed by hand.
       </figcaption>
@@ -168,6 +203,10 @@
   <script>
   // locked house themes live in js/mg-vega-theme.js and js/mermaid-init.js
   const houseConfig = () => window.mgVegaConfig();
+
+  // spec-local colour helper (reads the current theme tokens)
+  const tok = (n) => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+  const rgb = (n) => `rgb(${tok(n).replace(/\s+/g, ',')})`;
 
   // ---- data ----
   const priceData = [
@@ -188,6 +227,17 @@
     lossData.push({ step: s * 1000, series: 'val',   loss: +(0.95 * Math.exp(-s / 3.4) + 0.05).toFixed(3) });
   }
 
+  // multiple stocks, indexed to 100 — rendered as small multiples
+  const SECT = [
+    { t: 'LeWM', base: [100, 104, 101, 108, 112, 110, 118, 122, 126, 131, 129, 138] },
+    { t: 'JEPA', base: [100, 102, 103, 101, 105, 108, 107, 110, 112, 111, 115, 118] },
+    { t: 'SIGR', base: [100, 99, 101, 98, 96, 97, 95, 94, 92, 93, 91, 92] },
+    { t: 'MRGN', base: [100, 106, 103, 110, 108, 115, 112, 120, 124, 119, 128, 135] },
+  ];
+  const sectorData = [];
+  SECT.forEach((s) => s.base.forEach((v, i) =>
+    sectorData.push({ ticker: s.t, m: `2026-${String(i + 1).padStart(2, '0')}-01`, v })));
+
   // ---- specs (width measured from the container, in px) ----
   function priceSpec(w) {
     return {
@@ -206,7 +256,23 @@
       },
       layer: [
         { mark: { type: 'area', line: true, point: false } },
-        { // dot on the last point
+        { // vertical crosshair at the hovered x
+          transform: [{ filter: { param: 'hover', empty: false } }],
+          mark: { type: 'rule', color: rgb('--rgb-ink'), opacity: 0.45, strokeDash: [2, 3] },
+          encoding: { x: { field: 'date', type: 'temporal' } },
+        },
+        { // invisible capture points -> dot + tooltip on hover
+          params: [{ name: 'hover', select: { type: 'point', encodings: ['x'], nearest: true, on: 'pointerover', clear: 'pointerout' } }],
+          mark: { type: 'point', filled: true, size: 70, color: rgb('--rgb-rust') },
+          encoding: {
+            opacity: { condition: { param: 'hover', empty: false, value: 1 }, value: 0 },
+            tooltip: [
+              { field: 'date', type: 'temporal', title: 'Date', format: '%b %Y' },
+              { field: 'price', type: 'quantitative', title: 'Close', format: '$.2f' },
+            ],
+          },
+        },
+        { // permanent dot on the last point
           transform: [
             { joinaggregate: [{ op: 'max', field: 'date', as: '_max' }] },
             { filter: 'datum.date === datum._max' },
@@ -260,6 +326,31 @@
     };
   }
 
+  function sectorSpec(fw) {
+    return {
+      $schema: 'https://vega.github.io/schema/vega-lite/v5.json',
+      config: houseConfig(),
+      data: { values: sectorData },
+      facet: {
+        field: 'ticker', type: 'nominal', columns: 4, spacing: 18,
+        header: { title: null, labelColor: rgb('--rgb-ink'), labelFontSize: 12, labelFontWeight: 700 },
+      },
+      spec: {
+        width: fw, height: 120,
+        mark: { type: 'area', line: true },
+        encoding: {
+          x: { field: 'm', type: 'temporal', axis: null },
+          y: { field: 'v', type: 'quantitative', scale: { domain: [86, 144], zero: false }, axis: null },
+          tooltip: [
+            { field: 'ticker', title: 'Ticker' },
+            { field: 'm', type: 'temporal', title: 'Month', format: '%b %Y' },
+            { field: 'v', type: 'quantitative', title: 'Index', format: '.0f' },
+          ],
+        },
+      },
+    };
+  }
+
   // ---- Mermaid pipeline source ----
   const MERMAID_SRC = `flowchart LR
     O([o_t frame]) --> E[Encoder] --> Z([z_t]) --> P[Predictor] --> ZH([z_t+1 hat])
@@ -281,12 +372,15 @@
   async function renderAll() {
     const opts = { actions: false, renderer: 'svg' };
     if (!window.vegaEmbed) {
-      ['chart-price', 'chart-bar', 'chart-loss'].forEach((id) => fail(id, 'Vega-Lite failed to load (needs internet).'));
+      ['chart-price', 'chart-bar', 'chart-loss', 'chart-sector'].forEach((id) => fail(id, 'Vega-Lite failed to load (needs internet).'));
     } else {
       const jobs = [
         ['chart-price', priceSpec], ['chart-bar', barSpec], ['chart-loss', lossSpec],
       ].map(([id, spec]) =>
         vegaEmbed('#' + id, spec(widthOf(id)), opts).catch((e) => fail(id, 'chart error: ' + e.message)));
+      // sector is faceted: pass a per-facet width (4 columns, 18px gaps)
+      const fw = Math.max(110, Math.floor((widthOf('chart-sector') - 3 * 18 - 8) / 4));
+      jobs.push(vegaEmbed('#chart-sector', sectorSpec(fw), opts).catch((e) => fail('chart-sector', 'chart error: ' + e.message)));
       await Promise.all(jobs);
     }
 
