@@ -614,6 +614,25 @@
   document.querySelectorAll('[data-srange]').forEach((b) =>
     b.addEventListener('click', () => setSRange(b.getAttribute('data-srange'))));
 
+  // re-embed the (fixed-width) Vega charts when the viewport width changes,
+  // so they reflow responsively. Guarded so synthetic resize events (fired for
+  // ink-lines after each embed) don't loop.
+  function embedAllVega() {
+    if (!window.vegaEmbed) return;
+    const o = { actions: false, renderer: 'svg' };
+    embedPrice();
+    embedSector();
+    vegaEmbed('#chart-bar', barSpec(widthOf('chart-bar')), o).catch(() => {});
+    vegaEmbed('#chart-loss', lossSpec(widthOf('chart-loss')), o).catch(() => {});
+  }
+  let _rz, _lastW = window.innerWidth;
+  window.addEventListener('resize', () => {
+    if (window.innerWidth === _lastW) return;   // ignore height-only / synthetic resizes
+    _lastW = window.innerWidth;
+    clearTimeout(_rz);
+    _rz = setTimeout(embedAllVega, 240);
+  });
+
   window.addEventListener('load', () => {
     document.querySelectorAll('[data-range]').forEach((b) => b.classList.toggle('is-active', b.getAttribute('data-range') === currentTf));
     document.querySelectorAll('[data-srange]').forEach((b) => b.classList.toggle('is-active', b.getAttribute('data-srange') === currentSf));
