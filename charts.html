@@ -28,6 +28,9 @@
   <script src="js/mg-vega-theme.js"></script>
   <script src="js/mermaid-init.js"></script>
 
+  <!-- real daily market data (Nasdaq): AAPL, TSLA, RKLB, VT -->
+  <script src="js/market-data.js"></script>
+
   <style>
     .doc-wrap { max-width: 980px; margin: 0 auto; padding: 0 1.5rem; }
     .doc-h2 { font-family: var(--font-display); font-size: 2rem; }
@@ -93,6 +96,27 @@
 
   <main class="relative z-10 doc-wrap pb-24 space-y-14">
 
+    <!-- Watchlist: all six tickers, real last close + 30-day change + sparkline -->
+    <figure data-reveal>
+      <div class="mg-sketch-box relative border border-ink/30 bg-paper2/30 p-6 overflow-hidden">
+        <span class="mg-crop" style="top:6px;left:6px"></span>
+        <span class="mg-crop" style="top:6px;right:6px;transform:scaleX(-1)"></span>
+        <span class="mg-crop" style="bottom:6px;left:6px;transform:scaleY(-1)"></span>
+        <span class="mg-crop" style="bottom:6px;right:6px;transform:scale(-1)"></span>
+        <div class="mb-4">
+          <div class="font-display text-xl text-ink leading-none">Watchlist</div>
+          <div class="mg-mono-label mt-1">six tickers · real daily closes</div>
+        </div>
+        <div id="watchlist" class="divide-y divide-ink/10"></div>
+      </div>
+      <figcaption class="mt-3 font-serif text-sm text-faded leading-relaxed">
+        <span class="italic font-semibold text-ink">Watchlist.</span>
+        Real last close and 30-session change for each name — including the recent
+        SpaceX (SPCX) and Beta Technologies (BETA) listings. Sparkline is the last
+        30 sessions; VT stands in for VWRP (all-world).
+      </figcaption>
+    </figure>
+
     <!-- Chart 1: financial line + area -->
     <figure data-reveal>
       <div class="mg-sketch-box relative border border-ink/30 bg-paper2/30 p-6 overflow-hidden">
@@ -102,8 +126,8 @@
         <span class="mg-crop" style="bottom:6px;right:6px;transform:scale(-1)"></span>
         <div class="flex items-baseline justify-between mb-5">
           <div>
-            <div class="mg-mono-label">Ticker · LeWM</div>
-            <div id="px-value" class="font-display text-4xl text-ink leading-none mt-1">$142.80</div>
+            <div class="mg-mono-label">Apple · AAPL</div>
+            <div id="px-value" class="font-display text-4xl text-ink leading-none mt-1">$313.33</div>
           </div>
           <div class="text-right">
             <div id="px-delta" class="font-mono text-sm text-rust">&#9650; 12.4%</div>
@@ -121,8 +145,8 @@
       </div>
       <figcaption class="mt-3 font-serif text-sm text-faded leading-relaxed">
         <span class="italic font-semibold text-ink">Figure A.</span>
-        A price series (line + area wash) from real values. Axes and scale are
-        computed by Vega-Lite; only the data and a three-line spec are supplied.
+        Apple's real daily close (AAPL), sourced from Nasdaq. Pick a range to
+        re-window; axes and scale are computed by Vega-Lite from the data.
       </figcaption>
     </figure>
 
@@ -189,8 +213,8 @@
       </div>
       <figcaption class="mt-3 font-serif text-sm text-faded leading-relaxed">
         <span class="italic font-semibold text-ink">Figure D.</span>
-        Multiple stocks overlaid on one chart, one colour each from the validated
-        categorical palette. Pick a range to rebase all four to 100 at the window
+        Real closes for AAPL, TSLA, RKLB, and VT (a US-listed all-world proxy for
+        VWRP), one colour each. Pick a range to rebase all four to 100 at the window
         start; hover a line to lift it, dim the rest, and read its value.
       </figcaption>
     </figure>
@@ -225,8 +249,9 @@
   const rgb = (n) => `rgb(${tok(n).replace(/\s+/g, ',')})`;
 
   // ---- data ----
-  // Synthetic price history (stands in for real feeds): daily out to 2 years,
-  // hourly for the last 24h. Seeded so it is stable across reloads and tests.
+  // Real daily closes come from js/market-data.js (window.MG_MARKET, Nasdaq).
+  // The 24H view has no real intraday feed here, so it is simulated around the
+  // last real close with this seeded RNG (stable across reloads and tests).
   function mulberry32(a) {
     return function () {
       a |= 0; a = (a + 0x6D2B79F5) | 0;
@@ -235,23 +260,24 @@
       return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
     };
   }
-  const PRICE_HISTORY = (() => {
-    const END = Date.parse('2026-08-10T00:00:00Z');
-    const rnd = mulberry32(20260810);
-    const daily = [];
-    let p = 86;
-    for (let i = 729; i >= 0; i--) {
-      p = Math.max(45, p + (rnd() - 0.46) * 2.4);   // gentle upward random walk
-      daily.push({ date: new Date(END - i * 86400000).toISOString(), price: +p.toFixed(2) });
-    }
-    const hourly = [];
-    let hp = daily[daily.length - 1].price;
+  const MKT = window.MG_MARKET || {};
+  function synthHourly(daily, seed) {
+    if (!daily.length) return [];
+    const last = daily[daily.length - 1];
+    const base = Date.parse(last.date + 'T20:00:00Z');
+    const rnd = mulberry32(seed);
+    const arr = [];
+    let hp = last.price * (1 - (rnd() - 0.5) * 0.012);
     for (let i = 23; i >= 0; i--) {
-      hp = Math.max(45, hp + (rnd() - 0.5) * 0.9);
-      hourly.push({ date: new Date(END - i * 3600000).toISOString(), price: +hp.toFixed(2) });
+      hp += (rnd() - 0.5) * last.price * 0.004;
+      arr.push({ date: new Date(base - i * 3600000).toISOString(), price: +hp.toFixed(2) });
     }
-    return { daily, hourly };
-  })();
+    arr[arr.length - 1].price = last.price;   // land on the true close
+    return arr;
+  }
+
+  const PRICE_TICKER = 'AAPL';   // the single-stock chart
+  const PRICE_HISTORY = { daily: MKT[PRICE_TICKER] || [], hourly: synthHourly(MKT[PRICE_TICKER] || [], 101) };
 
   // time-range presets for the price chart
   const RANGES = {
@@ -275,29 +301,15 @@
     lossData.push({ step: s * 1000, series: 'val',   loss: +(0.95 * Math.exp(-s / 3.4) + 0.05).toFixed(3) });
   }
 
-  // multiple stocks: synthetic history per ticker (daily 2y + hourly 24h),
+  // multiple stocks overlaid: four full-history tickers, real daily closes,
   // rebased to 100 at the start of the visible window when charted.
+  const SECTOR_TICKERS = ['AAPL', 'TSLA', 'RKLB', 'VT'];
   const SECTOR_HISTORY = (() => {
-    const END = Date.parse('2026-08-10T00:00:00Z');
-    const defs = [
-      { t: 'LeWM', seed: 11, start: 80,  drift: 0.10 },
-      { t: 'JEPA', seed: 22, start: 95,  drift: 0.04 },
-      { t: 'SIGR', seed: 33, start: 120, drift: -0.03 },
-      { t: 'MRGN', seed: 44, start: 70,  drift: 0.09 },
-    ];
     const daily = [], hourly = [];
-    defs.forEach((d) => {
-      const rnd = mulberry32(d.seed * 1000 + 7);
-      let p = d.start;
-      for (let i = 729; i >= 0; i--) {
-        p = Math.max(20, p + (rnd() - 0.5) * 1.8 + d.drift);
-        daily.push({ ticker: d.t, date: new Date(END - i * 86400000).toISOString(), price: +p.toFixed(2) });
-      }
-      let hp = p;
-      for (let i = 23; i >= 0; i--) {
-        hp = Math.max(20, hp + (rnd() - 0.5) * 0.6);
-        hourly.push({ ticker: d.t, date: new Date(END - i * 3600000).toISOString(), price: +hp.toFixed(2) });
-      }
+    SECTOR_TICKERS.forEach((t, i) => {
+      const d = MKT[t] || [];
+      d.forEach((r) => daily.push({ ticker: t, date: r.date, price: r.price }));
+      synthHourly(d, 200 + i).forEach((r) => hourly.push({ ticker: t, date: r.date, price: r.price }));
     });
     return { daily, hourly };
   })();
@@ -463,7 +475,7 @@
   // the validated categorical palette, a colour legend, a multi-series hover
   // tooltip, and legend-hover emphasis (the hovered series lifts, the rest dim).
   function sectorSpec(w) {
-    const TK = ['LeWM', 'JEPA', 'SIGR', 'MRGN'];
+    const TK = SECTOR_TICKERS;
     const colors = [rgb('--cat-1'), rgb('--cat-2'), rgb('--cat-3'), rgb('--cat-4')];
     const S = SRANGES[currentSf];
     const rows = sectorWindow(S);
@@ -570,6 +582,43 @@
     window.dispatchEvent(new Event('resize'));
   }
 
+  // ---- watchlist (all six tickers) ----
+  const WATCH = [
+    ['AAPL', 'Apple'], ['TSLA', 'Tesla'], ['RKLB', 'Rocket Lab'],
+    ['VT', 'Vanguard All-World'], ['SPCX', 'SpaceX'], ['BETA', 'Beta Technologies'],
+  ];
+  function sparkline(prices, up) {
+    const n = prices.length;
+    if (n < 2) return '';
+    const lo = Math.min(...prices), hi = Math.max(...prices), span = hi - lo || 1;
+    const W = 120, H = 30;
+    const pts = prices.map((p, i) => `${(i / (n - 1) * W).toFixed(1)},${(H - (p - lo) / span * H).toFixed(1)}`).join(' ');
+    return `<svg viewBox="0 0 ${W} ${H}" class="w-[120px] h-7 ${up ? 'text-rust' : 'text-slate'}" preserveAspectRatio="none">
+      <polyline fill="none" stroke="currentColor" stroke-width="1.5" points="${pts}"/></svg>`;
+  }
+  function buildWatchlist() {
+    const host = document.getElementById('watchlist');
+    if (!host) return;
+    host.innerHTML = WATCH.map(([t, name]) => {
+      const d = MKT[t] || [];
+      if (!d.length) return '';
+      const recent = d.slice(-30);
+      const first = recent[0].price, last = recent[recent.length - 1].price;
+      const pct = (last - first) / first * 100, up = pct >= 0;
+      return `<div class="flex items-center gap-4 py-3">
+        <div class="min-w-[130px]">
+          <div class="font-serif text-[15px] text-ink leading-tight">${name}</div>
+          <div class="mg-mono-label">${t}</div>
+        </div>
+        <div class="flex-1 hidden sm:block">${sparkline(recent.map((r) => r.price), up)}</div>
+        <div class="text-right min-w-[90px]">
+          <div class="font-mono text-sm text-ink">$${last.toFixed(2)}</div>
+          <div class="font-mono text-[11px] ${up ? 'text-rust' : 'text-faded'}">${up ? '▲' : '▼'} ${Math.abs(pct).toFixed(1)}%</div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
   // re-embed just the price chart (used by the time-range buttons)
   function embedPrice() {
     if (!window.vegaEmbed) return Promise.resolve();
@@ -638,6 +687,7 @@
     document.querySelectorAll('[data-srange]').forEach((b) => b.classList.toggle('is-active', b.getAttribute('data-srange') === currentSf));
     const lab = document.getElementById('sector-label');
     if (lab) lab.textContent = 'four tickers · ' + SRANGES[currentSf].label;
+    buildWatchlist();
     updatePriceHeader();
     renderAll();
   });

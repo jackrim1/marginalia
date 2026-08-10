@@ -71,6 +71,16 @@ test('sector chart time-range buttons re-render and relabel', async ({ page }) =
   await expect(page.locator('[data-srange="1Y"]')).toHaveClass(/is-active/);
 });
 
+test('watchlist lists all six tickers with real data', async ({ page }) => {
+  await page.goto(url('charts.html'), { waitUntil: 'load' });
+  await page.waitForTimeout(2000);
+  const rows = page.locator('#watchlist > div');
+  await expect(rows).toHaveCount(6);
+  await expect(page.locator('#watchlist')).toContainText('SpaceX');
+  await expect(page.locator('#watchlist')).toContainText('Beta Technologies');
+  await expect(page.locator('#watchlist')).toContainText('$');
+});
+
 test('demo page reveals its figures (no stuck opacity:0)', async ({ page }) => {
   await page.goto(url('index.html'), { waitUntil: 'load' });
   // scroll so the reveal observer fires
