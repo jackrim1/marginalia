@@ -130,7 +130,7 @@
             <div id="px-value" class="font-display text-4xl text-ink leading-none mt-1">$313.33</div>
           </div>
           <div class="text-right">
-            <div id="px-delta" class="font-mono text-sm text-rust">&#9650; 12.4%</div>
+            <div id="px-delta" class="font-mono text-sm text-pos">&#9650; 12.4%</div>
             <div id="px-label" class="mg-mono-label mt-1">1-month close</div>
           </div>
         </div>
@@ -343,6 +343,8 @@
     const ys = R.data.map((d) => d.price);
     const lo = Math.min(...ys), hi = Math.max(...ys);
     const pad = (hi - lo) * 0.12 || 4;               // padded window so the wash stays contained
+    const up = ys.length > 1 ? ys[ys.length - 1] >= ys[0] : true;
+    const dir = rgb(up ? '--rgb-pos' : '--rgb-neg');  // finance: green when up, red when down
     return {
       $schema: 'https://vega.github.io/schema/vega-lite/v5.json',
       config: houseConfig(),
@@ -358,7 +360,7 @@
              title: null },
       },
       layer: [
-        { mark: { type: 'area', line: true, point: false } },
+        { mark: { type: 'area', line: { color: dir, strokeWidth: 1.8 }, color: dir, point: false } },
         { // vertical crosshair at the hovered x
           transform: [{ filter: { param: 'hover', empty: false } }],
           mark: { type: 'rule', color: rgb('--rgb-ink'), opacity: 0.45, strokeDash: [2, 3] },
@@ -366,7 +368,7 @@
         },
         { // invisible capture points -> dot + tooltip on hover
           params: [{ name: 'hover', select: { type: 'point', encodings: ['x'], nearest: true, on: 'pointerover', clear: 'pointerout' } }],
-          mark: { type: 'point', filled: true, size: 70, color: rgb('--rgb-rust') },
+          mark: { type: 'point', filled: true, size: 70, color: dir },
           encoding: {
             opacity: { condition: { param: 'hover', empty: false, value: 1 }, value: 0 },
             tooltip: [
@@ -380,7 +382,7 @@
             { joinaggregate: [{ op: 'max', field: 'date', as: '_max' }] },
             { filter: 'datum.date === datum._max' },
           ],
-          mark: { type: 'point', filled: true, size: 60 },
+          mark: { type: 'point', filled: true, size: 60, color: dir },
         },
       ],
     };
@@ -593,7 +595,7 @@
     const lo = Math.min(...prices), hi = Math.max(...prices), span = hi - lo || 1;
     const W = 120, H = 30;
     const pts = prices.map((p, i) => `${(i / (n - 1) * W).toFixed(1)},${(H - (p - lo) / span * H).toFixed(1)}`).join(' ');
-    return `<svg viewBox="0 0 ${W} ${H}" class="w-[120px] h-7 ${up ? 'text-rust' : 'text-slate'}" preserveAspectRatio="none">
+    return `<svg viewBox="0 0 ${W} ${H}" class="w-[120px] h-7 ${up ? 'text-pos' : 'text-neg'}" preserveAspectRatio="none">
       <polyline fill="none" stroke="currentColor" stroke-width="1.5" points="${pts}"/></svg>`;
   }
   function buildWatchlist() {
@@ -613,7 +615,7 @@
         <div class="flex-1 hidden sm:block">${sparkline(recent.map((r) => r.price), up)}</div>
         <div class="text-right min-w-[90px]">
           <div class="font-mono text-sm text-ink">$${last.toFixed(2)}</div>
-          <div class="font-mono text-[11px] ${up ? 'text-rust' : 'text-faded'}">${up ? '▲' : '▼'} ${Math.abs(pct).toFixed(1)}%</div>
+          <div class="font-mono text-[11px] ${up ? 'text-pos' : 'text-neg'}">${up ? '▲' : '▼'} ${Math.abs(pct).toFixed(1)}%</div>
         </div>
       </div>`;
     }).join('');
@@ -634,7 +636,7 @@
     const pct = ((last - first) / first) * 100, up = pct >= 0;
     const set = (id, txt, cls) => { const el = document.getElementById(id); if (el) { el.textContent = txt; if (cls) el.className = cls; } };
     set('px-value', '$' + last.toFixed(2));
-    set('px-delta', (up ? '▲ ' : '▼ ') + Math.abs(pct).toFixed(1) + '%', 'font-mono text-sm ' + (up ? 'text-rust' : 'text-faded'));
+    set('px-delta', (up ? '▲ ' : '▼ ') + Math.abs(pct).toFixed(1) + '%', 'font-mono text-sm ' + (up ? 'text-pos' : 'text-neg'));
     set('px-label', R.label + ' close');
   }
 

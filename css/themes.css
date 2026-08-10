@@ -37,6 +37,10 @@
   --cat-2:  79 131 192;
   --cat-3: 102 160  92;
   --cat-4: 179 102 140;
+
+  /* lighter status pair for the dark ground */
+  --rgb-pos: 108 178 120;
+  --rgb-neg: 224 122  99;
 }
 
 /* ---- Cyanotype blueprint: deep indigo-navy ground, pale ink ---- */
@@ -71,4 +75,8 @@
   --cat-2:  79 131 192;
   --cat-3: 102 160  92;
   --cat-4: 179 102 140;
+
+  /* lighter status pair for the navy ground */
+  --rgb-pos: 112 186 126;
+  --rgb-neg: 230 128 104;
 }

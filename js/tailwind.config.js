@@ -21,6 +21,8 @@ tailwind.config = {
         slate:   'rgb(var(--rgb-slate) / <alpha-value>)',
         grid:    'rgb(var(--rgb-grid) / <alpha-value>)',
         regmark: 'rgb(var(--rgb-regmark) / <alpha-value>)',
+        pos:     'rgb(var(--rgb-pos) / <alpha-value>)',
+        neg:     'rgb(var(--rgb-neg) / <alpha-value>)',
       },
     },
   },

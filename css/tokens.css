@@ -68,4 +68,12 @@
   --cat-2:  53  97 153;   /* steel blue */
   --cat-3:  79 134  74;   /* sage green */
   --cat-4: 156  74 111;   /* plum */
+
+  /* ---- Status: directional finance colours (up = positive, down = negative).
+     Reserved for direction only, never for series identity. Always paired with
+     an ▲/▼ arrow + sign so meaning never rests on colour alone. ---- */
+  --rgb-pos:  63 125  78;  /* green  — up / gain */
+  --rgb-neg: 178  59  46;  /* red    — down / loss */
+  --color-pos: rgb(var(--rgb-pos));
+  --color-neg: rgb(var(--rgb-neg));
 }

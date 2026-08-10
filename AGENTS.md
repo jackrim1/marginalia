@@ -206,6 +206,11 @@ Do not restate these per spec.
   `color.scale.range` to `[rgb('--cat-1'), …]`. Never invent hues, never rely on
   colour alone for >4 — fold extras into "Other" or small multiples.
 - Do not use `strokeDash` for identity when colour already distinguishes series.
+- **Direction / status → reserved tokens, never the brand or a series colour.**
+  For finance up/down use `pos` (green) / `neg` (red): `text-pos` / `text-neg`,
+  or `rgb(var(--rgb-pos))` in a spec. Colour a single-stock line/area/delta by
+  the window's direction. Always pair with an ▲/▼ arrow and a sign — red/green
+  is a colourblindness risk, so the arrow is the non-colour cue.
 
 **Hover (add it to every chart):** use a **single** nearest-point selection —
 two `nearest` selections fight over the pointer. It drives the crosshair, the
