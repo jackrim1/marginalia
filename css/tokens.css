@@ -38,7 +38,7 @@
 
   --tracking-body:    -0.015em;   /* global letter-spacing */
   --tracking-display: -0.03em;    /* headings pulled in tighter */
-  --tracking-serif:   -0.012em;   /* reading text */
+  --tracking-serif:   -0.022em;   /* reading text — letters a touch closer */
 
   /* ---- Paper texture (the stippled "dotted bumps") ---- */
   --dot-rgb:           250 246 238;  /* dots, a touch lighter than the paper */
