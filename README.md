@@ -8,6 +8,9 @@ paper, technical-drawing grids, halftone blocks, and hand-drawn ink lines.
 - **`index.html`** — the demo page. A full example layout using the system.
 - **`components.html`** — the gallery. Every token, primitive, and component
   with a live example and copy-paste markup. Start here.
+- **`charts.html`** — data-driven figures: Vega-Lite charts + Mermaid diagrams
+  in the house style, theme-aware. (The hand-coded originals stay in `index.html`.)
+- **`tests/`** — Playwright system tests (see `tests/README.md`).
 - **`USAGE.md`** — the vocabulary and rules (tokens, classes, do/don't).
 - **`AGENTS.md`** — how to apply the style in another repo (Rails, React,
   Python, a blog), written for an AI coding agent. Read this to reuse the kit.
@@ -44,6 +47,8 @@ are documented as markup patterns in the gallery, not as CSS classes.
 | `js/ink-lines.js` | Redraws borders and rules as hand-drawn ink (rough.js). Tunables in its `CONFIG`. |
 | `js/interactions.js` | Scroll reveal, parallax on floating shapes, letterpress reseed. |
 | `js/theme.js` | Applies/remembers the theme; wires `data-theme-set` buttons. |
+| `js/mg-vega-theme.js` | `mgVegaConfig()` — house Vega-Lite theme from tokens. |
+| `js/mermaid-init.js` | `mgMermaidTheme()` — house Mermaid theme from tokens. |
 
 ## How to change things
 

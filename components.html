@@ -538,6 +538,33 @@ loss  = mse(z_hat, target)</code></pre>
 </div>
       </template>
     </div>
+    <h3 class="mg-mono-label mb-1">Charts &amp; diagrams <span class="normal-case tracking-normal">(live on <a href="charts.html" class="text-rust border-b border-rust">charts.html</a>)</span></h3>
+    <p class="font-serif text-sm text-faded mb-3 max-w-2xl">
+      Vega-Lite charts and Mermaid diagrams, themed by locked presets. Supply the
+      data and a short spec; the house style comes from <code class="inline">mgVegaConfig()</code>
+      / <code class="inline">mgMermaidTheme()</code>. Single-accent palette; multi-series uses dash + labels.
+    </p>
+    <div class="grid md:grid-cols-2 gap-4 mb-8">
+      <div class="mg-code">
+        <div class="mg-code__bar"><span class="mg-code__dot" style="background:#cf6a3a"></span><span class="mg-code__dot" style="background:#e59a5f"></span><span class="mg-code__dot" style="background:#8f98ad"></span><span class="mg-code__name">vega-lite</span></div>
+<pre><code>vegaEmbed('#el', {
+  mark: <span class="tok-str">'line'</span>,
+  data: { values: rows },
+  encoding: {
+    x: { field: <span class="tok-str">'date'</span>,  type: <span class="tok-str">'temporal'</span> },
+    y: { field: <span class="tok-str">'price'</span>, type: <span class="tok-str">'quantitative'</span> }
+  },
+  config: <span class="tok-fn">mgVegaConfig</span>()   <span class="tok-com">// house style</span>
+}, { renderer: <span class="tok-str">'svg'</span> });</code></pre>
+      </div>
+      <div class="mg-code">
+        <div class="mg-code__bar"><span class="mg-code__dot" style="background:#cf6a3a"></span><span class="mg-code__dot" style="background:#e59a5f"></span><span class="mg-code__dot" style="background:#8f98ad"></span><span class="mg-code__name">mermaid</span></div>
+<pre><code>mermaid.<span class="tok-fn">initialize</span>(<span class="tok-fn">mgMermaidTheme</span>());
+<span class="tok-key">const</span> { svg } = <span class="tok-key">await</span> mermaid.<span class="tok-fn">render</span>(
+  <span class="tok-str">'id'</span>, <span class="tok-str">'flowchart LR\n A --&gt; B --&gt; C'</span>);
+el.innerHTML = svg;</code></pre>
+      </div>
+    </div>
   </section>
 
   <footer class="relative z-10 doc-wrap border-t border-ink/30 py-8 mb-6">

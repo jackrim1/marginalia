@@ -161,6 +161,49 @@ function NoteCard({ title, body }) {
 
 ---
 
+## Charts & diagrams
+
+Do NOT hand-place SVG points. Use the libraries with the locked presets, so new
+visuals get the house style and correct scales from data.
+
+**Charts — Vega-Lite.** Load `vega`, `vega-lite`, `vega-embed`, and
+`js/mg-vega-theme.js`. Write a spec and merge the house config:
+
+```js
+vegaEmbed('#el', {
+  mark: 'line',
+  data: { values: rows },
+  encoding: {
+    x: { field: 'date',  type: 'temporal' },
+    y: { field: 'price', type: 'quantitative' },
+  },
+  config: mgVegaConfig(),          // house style from tokens
+}, { renderer: 'svg' });
+```
+
+- The palette is **single-accent**. One series = rust, no legend.
+- For >1 series, encode identity with `strokeDash` **and** direct labels — never
+  colour alone (the brand palette is not a categorical palette).
+- Re-embed on a theme switch so `mgVegaConfig()` re-reads the tokens.
+
+**Diagrams — Mermaid.** Load `mermaid` and `js/mermaid-init.js`:
+
+```js
+mermaid.initialize(mgMermaidTheme());
+const { svg } = await mermaid.render('id', 'flowchart LR\n A --> B --> C');
+el.innerHTML = svg;
+```
+
+Re-initialise and re-render on a theme switch. See `charts.html` for a working
+page (line/area, bar, two-series, and a pipeline diagram), themed live.
+
+## Tests
+
+`tests/` holds Playwright system tests. Run `cd tests && npm install &&
+npm run setup && npm test`. They assert each page loads without JS errors and
+that charts/diagrams render as SVG in light and dark. Add a case when you add a
+page or a visual.
+
 ## Rules the agent must follow
 
 - **Never hardcode a hex colour.** Use a token utility (`bg-rust`) or

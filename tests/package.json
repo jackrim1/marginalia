@@ -1,0 +1,12 @@
+{
+  "name": "marginalia-tests",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "setup": "playwright install chromium",
+    "test": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.40.0"
+  }
+}
