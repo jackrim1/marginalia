@@ -39,6 +39,11 @@
         color: rgb('--rgb-ink'), font: DISPLAY, fontSize: 16, fontWeight: 400, anchor: 'start',
         subtitleColor: rgb('--rgb-faded'), subtitleFont: MONO, subtitleFontSize: 10,
       },
+      legend: {
+        labelColor: rgb('--rgb-ink'), labelFont: MONO, labelFontSize: 11,
+        titleColor: rgb('--rgb-faded'), titleFont: MONO, titleFontSize: 10, titleFontWeight: 400,
+        symbolStrokeWidth: 2,
+      },
     };
   };
 })();
