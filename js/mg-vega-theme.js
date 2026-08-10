@@ -26,13 +26,13 @@
       axis: {
         domainColor: rgba('--rgb-ink', 0.35),
         tickColor: rgba('--rgb-ink', 0.35),
-        labelColor: rgb('--rgb-faded'), labelFont: MONO, labelFontSize: 10,
-        titleColor: rgb('--rgb-faded'), titleFont: MONO, titleFontSize: 10, titleFontWeight: 400,
+        labelColor: rgb('--rgb-faded'), labelFont: MONO, labelFontSize: 12,
+        titleColor: rgb('--rgb-faded'), titleFont: MONO, titleFontSize: 11, titleFontWeight: 400,
       },
       range: { category: [rgb('--rgb-rust'), rgb('--rgb-ink')] },
       line: { strokeWidth: 1.8, stroke: rgb('--rgb-rust') },
-      area: { fill: rgb('--rgb-rust'), fillOpacity: 0.16, line: { color: rgb('--rgb-rust'), strokeWidth: 1.8 } },
-      point: { filled: true, size: 24 },
+      area: { fill: rgb('--rgb-rust'), fillOpacity: 0.22, line: { color: rgb('--rgb-rust'), strokeWidth: 1.8 } },
+      point: { filled: true, size: 24, fill: rgb('--rgb-rust') },
       bar: { fill: rgb('--rgb-rust'), cornerRadiusEnd: 3 },
       text: { color: rgb('--rgb-faded'), font: MONO, fontSize: 10 },
       title: {

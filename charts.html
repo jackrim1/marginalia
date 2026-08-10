@@ -187,14 +187,25 @@
       config: houseConfig(),
       width: w, height: 220,
       data: { values: priceData },
-      mark: { type: 'area', line: true, point: false },
       encoding: {
-        x: { field: 'date', type: 'temporal', axis: { format: '%b', tickCount: 4, grid: false }, title: null },
+        x: { field: 'date', type: 'temporal',
+             scale: { padding: 16 },                 // gap between the line and the axes
+             axis: { format: '%b', tickCount: 4, grid: false }, title: null },
         y: { field: 'price', type: 'quantitative',
              scale: { domain: [48, 170], zero: false, clamp: true },
              axis: { values: [60, 90, 120, 150], format: '$d' },
              title: null },
       },
+      layer: [
+        { mark: { type: 'area', line: true, point: false } },
+        { // dot on the last point
+          transform: [
+            { joinaggregate: [{ op: 'max', field: 'date', as: '_max' }] },
+            { filter: 'datum.date === datum._max' },
+          ],
+          mark: { type: 'point', filled: true, size: 60 },
+        },
+      ],
     };
   }
 
