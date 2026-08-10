@@ -111,6 +111,10 @@
         <span class="mg-crop" style="top:6px;right:6px;transform:scaleX(-1)"></span>
         <span class="mg-crop" style="bottom:6px;left:6px;transform:scaleY(-1)"></span>
         <span class="mg-crop" style="bottom:6px;right:6px;transform:scale(-1)"></span>
+        <div class="mb-5">
+          <div class="font-display text-xl text-ink leading-none">Score by method</div>
+          <div class="mg-mono-label mt-1">higher is better</div>
+        </div>
         <div id="chart-bar"></div>
       </div>
       <figcaption class="mt-3 font-serif text-sm text-faded leading-relaxed">
@@ -127,12 +131,16 @@
         <span class="mg-crop" style="top:6px;right:6px;transform:scaleX(-1)"></span>
         <span class="mg-crop" style="bottom:6px;left:6px;transform:scaleY(-1)"></span>
         <span class="mg-crop" style="bottom:6px;right:6px;transform:scale(-1)"></span>
+        <div class="mb-5">
+          <div class="font-display text-xl text-ink leading-none">Loss</div>
+          <div class="mg-mono-label mt-1">train vs. val</div>
+        </div>
         <div id="chart-loss"></div>
       </div>
       <figcaption class="mt-3 font-serif text-sm text-faded leading-relaxed">
         <span class="italic font-semibold text-ink">Figure C.</span>
-        Two series (train / val). Identity comes from a solid vs. dashed line and
-        direct labels, so it survives colourblindness and print.
+        Two series (train / val). Identity comes from a solid vs. dashed line plus
+        a legend, so it survives colourblindness and print.
       </figcaption>
     </figure>
 
@@ -213,17 +221,19 @@
     return {
       $schema: 'https://vega.github.io/schema/vega-lite/v5.json',
       config: houseConfig(),
-      width: w, height: 240,
-      title: { text: 'Score by method', subtitle: 'higher is better' },
+      width: w, height: 220,
       data: { values: barData },
       layer: [
         { mark: { type: 'bar', cornerRadiusEnd: 3 } },
-        { mark: { type: 'text', dy: -6, baseline: 'bottom' },
+        { mark: { type: 'text', dy: -8, baseline: 'bottom', fontSize: 11 },
           encoding: { text: { field: 'score', type: 'quantitative', format: '.1f' } } },
       ],
       encoding: {
-        x: { field: 'method', type: 'nominal', sort: null, title: null, axis: { labelAngle: 0 } },
-        y: { field: 'score', type: 'quantitative', title: null },
+        x: { field: 'method', type: 'nominal', sort: null, title: null,
+             scale: { paddingInner: 0.38, paddingOuter: 0.14 },
+             axis: { labelAngle: 0 } },
+        y: { field: 'score', type: 'quantitative', title: null,
+             axis: { values: [0, 20, 40, 60, 80] } },
       },
     };
   }
@@ -232,12 +242,13 @@
     return {
       $schema: 'https://vega.github.io/schema/vega-lite/v5.json',
       config: houseConfig(),
-      width: w, height: 240,
-      title: { text: 'Loss', subtitle: 'train vs. val' },
+      width: w, height: 220,
       data: { values: lossData },
       encoding: {
-        x: { field: 'step', type: 'quantitative', title: 'step' },
-        y: { field: 'loss', type: 'quantitative', title: null },
+        x: { field: 'step', type: 'quantitative', title: 'step',
+             scale: { padding: 6 }, axis: { tickCount: 6 } },
+        y: { field: 'loss', type: 'quantitative', title: null,
+             axis: { values: [0, 0.2, 0.4, 0.6, 0.8, 1.0] } },
       },
       layer: [
         { mark: { type: 'line', strokeWidth: 1.8 },
@@ -245,9 +256,6 @@
             color: { field: 'series', type: 'nominal', legend: { orient: 'top-right', title: null } },
             strokeDash: { field: 'series', type: 'nominal', legend: null },
           } },
-        { transform: [{ filter: 'datum.step === 10000' }],
-          mark: { type: 'text', align: 'left', dx: 6 },
-          encoding: { text: { field: 'series', type: 'nominal' } } },
       ],
     };
   }
