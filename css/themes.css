@@ -31,6 +31,12 @@
   --crop-rgb: 168 160 148;
   --mg-ink-line-rgb: 234 228 218;
   --panel-highlight: .06;
+
+  /* lighter categorical set, readable on the dark ground */
+  --cat-1: 208 102  58;
+  --cat-2:  79 131 192;
+  --cat-3: 102 160  92;
+  --cat-4: 179 102 140;
 }
 
 /* ---- Cyanotype blueprint: deep indigo-navy ground, pale ink ---- */
@@ -59,4 +65,10 @@
   --crop-rgb: 150 172 202;
   --mg-ink-line-rgb: 224 226 232;
   --panel-highlight: .07;
+
+  /* lighter categorical set, readable on the navy ground */
+  --cat-1: 208 102  58;
+  --cat-2:  79 131 192;
+  --cat-3: 102 160  92;
+  --cat-4: 179 102 140;
 }

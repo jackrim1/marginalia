@@ -168,14 +168,15 @@
         <span class="mg-crop" style="bottom:6px;right:6px;transform:scale(-1)"></span>
         <div class="mb-5">
           <div class="font-display text-xl text-ink leading-none">Sector · indexed to 100</div>
-          <div class="mg-mono-label mt-1">12-month, four tickers</div>
+          <div class="mg-mono-label mt-1">four tickers, one chart</div>
         </div>
         <div id="chart-sector"></div>
       </div>
       <figcaption class="mt-3 font-serif text-sm text-faded leading-relaxed">
         <span class="italic font-semibold text-ink">Figure D.</span>
-        Multiple stocks as small multiples — one accent line each on a shared scale,
-        with hover for the point value. The single-accent way to compare many series.
+        Multiple stocks overlaid on one chart, one colour each from the validated
+        categorical palette. Hover the plot for a tooltip of every value that month;
+        hover a legend entry to lift that line and dim the rest.
       </figcaption>
     </figure>
 
@@ -326,28 +327,58 @@
     };
   }
 
-  function sectorSpec(fw) {
+  // multiple stocks overlaid on one chart: all solid lines, one colour each from
+  // the validated categorical palette, a colour legend, a multi-series hover
+  // tooltip, and legend-hover emphasis (the hovered series lifts, the rest dim).
+  function sectorSpec(w) {
+    const TK = ['LeWM', 'JEPA', 'SIGR', 'MRGN'];
+    const colors = [rgb('--cat-1'), rgb('--cat-2'), rgb('--cat-3'), rgb('--cat-4')];
     return {
       $schema: 'https://vega.github.io/schema/vega-lite/v5.json',
       config: houseConfig(),
+      width: w, height: 240,
       data: { values: sectorData },
-      facet: {
-        field: 'ticker', type: 'nominal', columns: 4, spacing: 18,
-        header: { title: null, labelColor: rgb('--rgb-ink'), labelFontSize: 12, labelFontWeight: 700 },
+      encoding: {
+        x: { field: 'm', type: 'temporal', scale: { padding: 16 },
+             axis: { format: '%b', tickCount: 4, grid: false }, title: null },
       },
-      spec: {
-        width: fw, height: 120,
-        mark: { type: 'area', line: true },
-        encoding: {
-          x: { field: 'm', type: 'temporal', axis: null },
-          y: { field: 'v', type: 'quantitative', scale: { domain: [86, 144], zero: false }, axis: null },
-          tooltip: [
-            { field: 'ticker', title: 'Ticker' },
-            { field: 'm', type: 'temporal', title: 'Month', format: '%b %Y' },
-            { field: 'v', type: 'quantitative', title: 'Index', format: '.0f' },
-          ],
+      layer: [
+        { // transparent capture -> crosshair + multi-series tooltip
+          transform: [{ pivot: 'ticker', value: 'v', groupby: ['m'] }],
+          params: [{ name: 'hover', select: { type: 'point', fields: ['m'], nearest: true, on: 'pointerover', clear: 'pointerout' } }],
+          mark: { type: 'rule', color: rgb('--rgb-ink'), strokeDash: [2, 3] },
+          encoding: {
+            opacity: { condition: { param: 'hover', empty: false, value: 0.45 }, value: 0 },
+            tooltip: [
+              { field: 'm', type: 'temporal', title: 'Month', format: '%b %Y' },
+              { field: 'LeWM', type: 'quantitative', format: '.0f' },
+              { field: 'JEPA', type: 'quantitative', format: '.0f' },
+              { field: 'SIGR', type: 'quantitative', format: '.0f' },
+              { field: 'MRGN', type: 'quantitative', format: '.0f' },
+            ],
+          },
         },
-      },
+        { // the overlaid solid lines (colour = identity), legend-hover emphasis
+          params: [{ name: 'hi', select: { type: 'point', fields: ['ticker'], on: 'pointerover', clear: 'pointerout' }, bind: 'legend' }],
+          mark: { type: 'line' },
+          encoding: {
+            y: { field: 'v', type: 'quantitative', scale: { domain: [86, 144], zero: false },
+                 axis: { values: [100, 120, 140] }, title: null },
+            color: { field: 'ticker', type: 'nominal', sort: TK,
+                     scale: { domain: TK, range: colors }, legend: { orient: 'top-left', title: null } },
+            opacity: { condition: { param: 'hi', value: 1 }, value: 0.28 },
+            strokeWidth: { condition: { param: 'hi', empty: false, value: 2.8 }, value: 1.6 },
+          },
+        },
+        { // dots on each line at the hovered month
+          transform: [{ filter: { param: 'hover', empty: false } }],
+          mark: { type: 'point', filled: true, size: 45 },
+          encoding: {
+            y: { field: 'v', type: 'quantitative' },
+            color: { field: 'ticker', type: 'nominal', scale: { domain: TK, range: colors }, legend: null },
+          },
+        },
+      ],
     };
   }
 
@@ -375,12 +406,9 @@
       ['chart-price', 'chart-bar', 'chart-loss', 'chart-sector'].forEach((id) => fail(id, 'Vega-Lite failed to load (needs internet).'));
     } else {
       const jobs = [
-        ['chart-price', priceSpec], ['chart-bar', barSpec], ['chart-loss', lossSpec],
+        ['chart-price', priceSpec], ['chart-bar', barSpec], ['chart-loss', lossSpec], ['chart-sector', sectorSpec],
       ].map(([id, spec]) =>
         vegaEmbed('#' + id, spec(widthOf(id)), opts).catch((e) => fail(id, 'chart error: ' + e.message)));
-      // sector is faceted: pass a per-facet width (4 columns, 18px gaps)
-      const fw = Math.max(110, Math.floor((widthOf('chart-sector') - 3 * 18 - 8) / 4));
-      jobs.push(vegaEmbed('#chart-sector', sectorSpec(fw), opts).catch((e) => fail('chart-sector', 'chart error: ' + e.message)));
       await Promise.all(jobs);
     }
 

@@ -62,4 +62,10 @@
 
   /* ---- Ink lines (colour of the rough.js strokes; r g b triplet) ---- */
   --mg-ink-line-rgb: 28 26 23;
+
+  /* ---- Categorical series (multi-series charts; validated, CVD-safe) ---- */
+  --cat-1: 192  83  42;   /* orange (rust) */
+  --cat-2:  53  97 153;   /* steel blue */
+  --cat-3:  79 134  74;   /* sage green */
+  --cat-4: 156  74 111;   /* plum */
 }
