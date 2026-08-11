@@ -427,21 +427,25 @@
       config: houseConfig(),
       width: w, height: 220,
       data: { values: lossData },
-      encoding: {
-        x: { field: 'step', type: 'quantitative', title: 'step',
-             scale: { padding: 6 }, axis: { tickCount: 6 } },
-      },
       layer: [
-        { // crosshair at the hovered point's step
-          transform: [{ filter: { param: 'lpick', empty: false } }],
+        // per-layer encodings so the horizontal crosshair gets y only (no inherited x)
+        { transform: [{ filter: { param: 'lpick', empty: false } }],   // vertical
           mark: { type: 'rule', color: rgb('--rgb-ink'), opacity: 0.45, strokeDash: [2, 3] },
-          encoding: { x: { field: 'step', type: 'quantitative' } },
-        },
+          encoding: { x: { field: 'step', type: 'quantitative', scale: { padding: 6 }, axis: { tickCount: 6 }, title: 'step' } } },
+        { transform: [{ filter: { param: 'lpick', empty: false } }],   // horizontal
+          mark: { type: 'rule', color: rgb('--rgb-ink'), opacity: 0.45, strokeDash: [2, 3] },
+          encoding: { y: { field: 'loss', type: 'quantitative', scale: { domain: [0, 1] } } } },
+        { transform: [{ filter: { param: 'lpick', empty: false } }],   // y readout
+          mark: { type: 'text', align: 'left', baseline: 'bottom', dx: 4, dy: -4, fontSize: 10,
+                  font: "'IBM Plex Mono', monospace", color: rgb('--rgb-ink') },
+          encoding: { x: { value: 0 }, y: { field: 'loss', type: 'quantitative', scale: { domain: [0, 1] } },
+                      text: { field: 'loss', type: 'quantitative', format: '.3f' } } },
         { // lines + emphasis (plot-hover nearest OR legend-hover)
           params: [{ name: 'lhi', select: { type: 'point', fields: ['series'], on: 'pointerover', clear: 'pointerout' }, bind: 'legend' }],
           mark: { type: 'line', strokeWidth: 1.8 },
           encoding: {
-            y: { field: 'loss', type: 'quantitative', title: null, axis: { values: [0, 0.2, 0.4, 0.6, 0.8, 1.0] } },
+            x: { field: 'step', type: 'quantitative', scale: { padding: 6 }, axis: { tickCount: 6 }, title: 'step' },
+            y: { field: 'loss', type: 'quantitative', title: null, scale: { domain: [0, 1] }, axis: { values: [0, 0.2, 0.4, 0.6, 0.8, 1.0] } },
             color: { field: 'series', type: 'nominal', legend: { orient: 'top-right', title: null } },
             strokeDash: { field: 'series', type: 'nominal', legend: null },
             opacity: {
@@ -464,7 +468,8 @@
           params: [{ name: 'lpick', select: { type: 'point', fields: ['series', 'step'], nearest: true, on: 'pointerover', clear: 'pointerout' } }],
           mark: { type: 'point', filled: true, size: 66 },
           encoding: {
-            y: { field: 'loss', type: 'quantitative' },
+            x: { field: 'step', type: 'quantitative', scale: { padding: 6 } },
+            y: { field: 'loss', type: 'quantitative', scale: { domain: [0, 1] } },
             color: { field: 'series', type: 'nominal', legend: null },
             opacity: { condition: { param: 'lpick', empty: false, value: 1 }, value: 0 },
             tooltip: [
