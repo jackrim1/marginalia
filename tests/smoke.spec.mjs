@@ -34,7 +34,7 @@ for (const f of PAGES) {
   });
 }
 
-const CHART_IDS = ['chart-price', 'chart-bar', 'chart-loss', 'chart-sector', 'diagram'];
+const CHART_IDS = ['chart-price', 'chart-bar', 'chart-loss', 'chart-sector', 'chart-growth', 'diagram'];
 
 test('charts & diagram render SVGs in light and dark', async ({ page }) => {
   await page.goto(url('charts.html'), { waitUntil: 'load' });
@@ -92,6 +92,15 @@ test('portfolio ledger computes TWR/MWR and populates its ledgers', async ({ pag
   await expect(page.locator('#pl-holdings-body tr')).toHaveCount(6);
   await expect(page.locator('#pl-meters')).toContainText('Time-weighted');
   await expect(page.locator('#pl-meters')).toContainText('Money-weighted');
+});
+
+test('growth chart compares the portfolio to the illustrative benchmark', async ({ page }) => {
+  await page.goto(url('charts.html'), { waitUntil: 'load' });
+  await page.waitForTimeout(2500);
+  await expect(page.locator('#growth-value')).toContainText('$16,469.45');
+  await expect(page.locator('#growth-delta')).toContainText('$1,024.71 vs tracker');
+  await expect(page.locator('#growth-delta')).toHaveClass(/text-pos/);
+  await expect(page.locator('#chart-growth svg')).toHaveCount(1);
 });
 
 test('demo page reveals its figures (no stuck opacity:0)', async ({ page }) => {
