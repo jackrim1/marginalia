@@ -10,6 +10,8 @@ paper, technical-drawing grids, halftone blocks, and hand-drawn ink lines.
   with a live example and copy-paste markup. Start here.
 - **`charts.html`** — data-driven figures: Vega-Lite charts + Mermaid diagrams
   in the house style, theme-aware. (The hand-coded originals stay in `index.html`.)
+- **`board.html`** — "The Desk": a work-management page in the house style —
+  a draggable Kanban board, a Linear-style checklist, and a Vega-Lite Gantt chart.
 - **`tests/`** — Playwright system tests (see `tests/README.md`).
 - **`USAGE.md`** — the vocabulary and rules (tokens, classes, do/don't).
 - **`AGENTS.md`** — how to apply the style in another repo (Rails, React,

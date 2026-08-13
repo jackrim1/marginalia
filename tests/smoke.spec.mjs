@@ -23,7 +23,7 @@ function collectErrors(page) {
   return errors;
 }
 
-const PAGES = ['index.html', 'components.html', 'charts.html'];
+const PAGES = ['index.html', 'components.html', 'charts.html', 'board.html'];
 
 for (const f of PAGES) {
   test(`${f} loads without JS errors`, async ({ page }) => {
@@ -81,10 +81,52 @@ test('watchlist lists all six tickers with real data', async ({ page }) => {
   await expect(page.locator('#watchlist')).toContainText('$');
 });
 
+test('portfolio ledger computes TWR/MWR and populates its ledgers', async ({ page }) => {
+  await page.goto(url('charts.html'), { waitUntil: 'load' });
+  await page.waitForTimeout(2500);
+  await expect(page.locator('#pl-net-deposited')).toContainText('$13,000.00');
+  await expect(page.locator('#pl-current-value')).toContainText('$16,469.45');
+  await expect(page.locator('#pl-twr')).toContainText('+13.1%');
+  await expect(page.locator('#pl-mwr')).toContainText('+12.8%');
+  await expect(page.locator('#pl-cashflow-body tr')).toHaveCount(10);
+  await expect(page.locator('#pl-holdings-body tr')).toHaveCount(6);
+  await expect(page.locator('#pl-meters')).toContainText('Time-weighted');
+  await expect(page.locator('#pl-meters')).toContainText('Money-weighted');
+});
+
 test('demo page reveals its figures (no stuck opacity:0)', async ({ page }) => {
   await page.goto(url('index.html'), { waitUntil: 'load' });
   // scroll so the reveal observer fires
   for (let y = 0; y <= 4000; y += 500) { await page.evaluate((v) => window.scrollTo(0, v), y); await page.waitForTimeout(120); }
   const firstFigure = page.locator('figure[data-reveal]').first();
   await expect(firstFigure).toHaveClass(/shown/);
+});
+
+test('board page renders the kanban, checklist, and gantt chart', async ({ page }) => {
+  await page.goto(url('board.html'), { waitUntil: 'load' });
+  await page.waitForTimeout(2000);
+  await expect(page.locator('[data-column="submitted"] .mg-card')).toHaveCount(2);
+  await expect(page.locator('#kanban-total')).toContainText('7 open');
+  await expect(page.locator('#checklist .mg-task')).toHaveCount(7);
+  await expect(page.locator('#chart-gantt svg')).toHaveCount(1);
+});
+
+test('board page kanban card drags between columns and updates counts', async ({ page }) => {
+  await page.goto(url('board.html'), { waitUntil: 'load' });
+  await page.waitForTimeout(2000);
+  const card = page.locator('[data-column="submitted"] .mg-card').first();
+  const target = page.locator('[data-column="accepted"]');
+  await card.dragTo(target);
+  await expect(page.locator('[data-column="submitted"] .mg-card')).toHaveCount(1);
+  await expect(page.locator('[data-column="accepted"] .mg-card')).toHaveCount(3);
+});
+
+test('board page checklist checkbox toggles done state and progress count', async ({ page }) => {
+  await page.goto(url('board.html'), { waitUntil: 'load' });
+  await page.waitForTimeout(1500);
+  await expect(page.locator('#checklist-progress')).toContainText('2 / 7 done');
+  const box = page.locator('[data-task="t1"]');
+  await box.check();
+  await expect(page.locator('#checklist-progress')).toContainText('3 / 7 done');
+  await expect(page.locator('[data-task="t1"]').locator('xpath=ancestor::label')).toHaveClass(/is-done/);
 });
