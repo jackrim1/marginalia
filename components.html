@@ -80,6 +80,7 @@
           <button class="mg-theme-btn" data-theme-set="darkroom">Dark</button>
           <button class="mg-theme-btn" data-theme-set="blueprint">Blue</button>
         </div>
+        <a href="read.html" class="mg-mono-label hover:text-rust border-b border-transparent hover:border-rust pb-0.5">Margins →</a>
         <a href="board.html" class="mg-mono-label hover:text-rust border-b border-transparent hover:border-rust pb-0.5">The Desk →</a>
         <a href="index.html" class="mg-mono-label hover:text-rust border-b border-transparent hover:border-rust pb-0.5">View demo page →</a>
       </div>
@@ -98,6 +99,7 @@
       <a href="#primitives" class="mg-mono-label border border-ink/30 px-3 py-1.5 hover:text-rust hover:border-rust">02 · Primitives</a>
       <a href="#components" class="mg-mono-label border border-ink/30 px-3 py-1.5 hover:text-rust hover:border-rust">03 · Components</a>
       <a href="#content" class="mg-mono-label border border-ink/30 px-3 py-1.5 hover:text-rust hover:border-rust">04 · Content &amp; media</a>
+      <a href="#marginalia" class="mg-mono-label border border-ink/30 px-3 py-1.5 hover:text-rust hover:border-rust">05 · Marginalia</a>
     </div>
   </section>
 
@@ -566,6 +568,70 @@ loss  = mse(z_hat, target)</code></pre>
 el.innerHTML = svg;</code></pre>
       </div>
     </div>
+  </section>
+
+  <!-- ============================================================= -->
+  <!-- 05 · MARGINALIA                                                -->
+  <!-- ============================================================= -->
+  <section id="marginalia" class="relative z-10 doc-wrap py-8 pb-24">
+    <div class="flex items-baseline gap-3 mb-2">
+      <span class="mg-mono-label">05</span>
+      <h2 class="doc-h2 mg-printed">Marginalia</h2>
+    </div>
+    <p class="font-serif text-faded max-w-2xl mb-6">
+      The namesake feature: a reader marking up a paper. Live on
+      <a href="read.html" class="text-rust border-b border-rust">read.html</a> —
+      select text there to try it.
+    </p>
+
+    <h3 class="mg-mono-label mb-1">Flag &amp; wash <span class="normal-case tracking-normal">(<code class="inline">.mg-mark-flag</code>, <code class="inline">.mg-mark-context</code>)</span></h3>
+    <div class="item">
+      <template class="ex">
+<p class="font-serif text-[15px] leading-relaxed max-w-md">
+  A reader can <span class="mg-mark-flag">underline the load-bearing claim</span> by
+  hand, or lay a <span class="mg-mark-context">soft wash behind background context</span>
+  that doesn't need a flag.
+</p>
+      </template>
+    </div>
+
+    <h3 class="mg-mono-label mb-1">Note marker <span class="normal-case tracking-normal">(<code class="inline">.mg-note-marker</code>)</span></h3>
+    <div class="item">
+      <template class="ex">
+<p class="font-serif text-[15px] leading-relaxed max-w-md">
+  A small numbered marker sits in the text<span class="mg-note-marker">1</span>,
+  pointing at a note in the margin — the same marker links back to it on click.
+</p>
+      </template>
+    </div>
+
+    <h3 class="mg-mono-label mb-1">Margin note <span class="normal-case tracking-normal">(<code class="inline">.mg-margin-note</code>, a ruled index card)</span></h3>
+    <div class="item">
+      <template class="ex">
+<div class="mg-margin-note p-4 pl-8 max-w-xs relative" style="position:relative">
+  <div class="mg-mono-label mb-2">Note 1</div>
+  <p class="font-serif text-[14.5px] leading-snug text-ink">This is the whole trick — no decoder, no pixel loss, ever.</p>
+</div>
+      </template>
+    </div>
+
+    <h3 class="mg-mono-label mb-1">Citation <span class="normal-case tracking-normal">(<code class="inline">.mg-cite</code>, hover for a preview)</span></h3>
+    <div class="item">
+      <template class="ex">
+<p class="font-serif text-[15px] leading-relaxed max-w-md">
+  A footnote number sits in the text<sup class="mg-cite">[1]</sup>, and links down
+  to a References list at the foot of the page — never a blue underlined link.
+</p>
+      </template>
+    </div>
+
+    <h3 class="mg-mono-label mb-1">Sketch layer <span class="normal-case tracking-normal">(freehand pen + proofreader's marks, via rough.js)</span></h3>
+    <p class="font-serif text-sm text-faded mb-3 max-w-2xl">
+      An SVG layer sits over the reading column. A fixed set of stamps (caret,
+      circle, arrow, wavy underline) covers most real markup; a freehand pen
+      covers the rest. Both are roughened by <code class="inline">rough.js</code>,
+      the same library that inks every box border in this kit.
+    </p>
   </section>
 
   <footer class="relative z-10 doc-wrap border-t border-ink/30 py-8 mb-6">

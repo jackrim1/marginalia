@@ -175,3 +175,138 @@
   text-transform: uppercase;
   color: #8a8070;
 }
+
+/* ---- Marginalia: reading & annotation ----
+   The namesake feature. A reader flags or contextualises text, drops a note
+   in the margin, threads a reply, cites another page, or sketches on top —
+   the 1960s reader's-own-copy, not a modern comment bubble. */
+
+/* flag: a reader has underlined this by hand — border-bottom renders per
+   wrapped line natively, no JS geometry needed */
+.mg-mark-flag {
+  border-bottom: 2px solid rgb(var(--rgb-rust) / .8);
+  padding-bottom: 1px;
+  cursor: pointer;
+}
+/* context: a soft wash behind the words, clones across line wraps like mg-text-halo */
+.mg-mark-context {
+  background: rgb(var(--rgb-coral) / .38);
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  padding: 0.05em 0.15em;
+  cursor: pointer;
+}
+
+/* the small numbered marker inlined in text, pointing at its margin note */
+.mg-note-marker {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.35em;
+  height: 1.35em;
+  margin: 0 .1em;
+  border-radius: 50%;
+  border: 1px solid rgb(var(--rgb-rust) / .7);
+  color: rgb(var(--rgb-rust));
+  font-family: var(--font-mono);
+  font-size: 0.62em;
+  line-height: 1;
+  vertical-align: super;
+  cursor: pointer;
+  background: rgb(var(--rgb-paper));
+  transition: background .15s, color .15s;
+}
+.mg-note-marker:hover, .mg-note-marker.is-active {
+  background: rgb(var(--rgb-rust));
+  color: rgb(var(--rgb-paper));
+}
+
+/* a note in the margin rail — a reader's own index card, absolutely
+   positioned by JS to sit level with its marker */
+.mg-margin-note {
+  position: absolute;
+  left: 0; right: 0;
+  background: rgb(var(--rgb-panel) / .8);
+  border: 1px solid rgb(var(--rgb-ink) / .18);
+  transition: border-color .15s, box-shadow .15s;
+}
+.mg-margin-note.is-active {
+  border-color: rgb(var(--rgb-rust) / .7);
+  box-shadow: 0 0 0 1px rgb(var(--rgb-rust) / .35);
+}
+.mg-margin-note::before {
+  content: "";
+  position: absolute;
+  top: 0; bottom: 0; left: 22px;
+  width: 1px;
+  background: rgb(var(--rgb-rust) / .35);
+}
+
+/* a citation superscript + its hover preview card */
+.mg-cite {
+  font-family: var(--font-mono);
+  color: rgb(var(--rgb-rust));
+  cursor: pointer;
+  vertical-align: super;
+  font-size: 0.68em;
+}
+.mg-cite-preview {
+  position: absolute;
+  z-index: 30;
+  width: 260px;
+  background: rgb(var(--rgb-panel));
+  border: 1px solid rgb(var(--rgb-ink) / .3);
+  box-shadow: 0 10px 26px -14px rgba(0,0,0,.5);
+  padding: .65rem .8rem;
+  font-family: var(--font-serif);
+  font-size: 12.5px;
+  line-height: 1.5;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity .12s, transform .12s;
+}
+.mg-cite-preview.is-shown { opacity: 1; transform: translateY(0); pointer-events: auto; }
+
+/* the floating popup offered on a text selection */
+.mg-annot-popup {
+  position: absolute;
+  z-index: 30;
+  display: flex;
+  gap: 1px;
+  background: rgb(var(--rgb-ink));
+  padding: 2px;
+  box-shadow: 0 10px 26px -14px rgba(0,0,0,.6);
+}
+.mg-annot-popup button {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: rgb(var(--rgb-paper));
+  background: transparent;
+  padding: .4rem .55rem;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.mg-annot-popup button:hover { background: rgb(var(--rgb-rust)); }
+
+/* the freehand sketch surface layered over the article column */
+.mg-sketch-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+}
+.mg-sketch-layer.is-live { cursor: crosshair; pointer-events: auto; }
+.mg-sketch-layer:not(.is-live) { pointer-events: none; }
+
+/* an always-live scratch pad for sketching a quick diagram inside a note */
+.mg-note-sketch {
+  display: block;
+  width: 100%;
+  height: 220px;
+  background: rgb(var(--rgb-paper) / .55);
+  border: 1px dashed rgb(var(--rgb-ink) / .3);
+  cursor: crosshair;
+  touch-action: none;
+}

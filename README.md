@@ -12,6 +12,9 @@ paper, technical-drawing grids, halftone blocks, and hand-drawn ink lines.
   in the house style, theme-aware. (The hand-coded originals stay in `index.html`.)
 - **`board.html`** — "The Desk": a work-management page in the house style —
   a draggable Kanban board, a Linear-style checklist, and a Vega-Lite Gantt chart.
+- **`read.html`** — "Margins": the namesake feature. Reading an article with
+  flags, washes, margin notes, threaded replies, footnote citations, and a
+  freehand/proofreader's-mark sketch layer. Reads `sample_article.txt`'s content.
 - **`tests/`** — Playwright system tests (see `tests/README.md`).
 - **`USAGE.md`** — the vocabulary and rules (tokens, classes, do/don't).
 - **`AGENTS.md`** — how to apply the style in another repo (Rails, React,

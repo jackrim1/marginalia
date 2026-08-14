@@ -1,0 +1,86 @@
+Joint-Embedding Predictive Architectures for World Models
+
+Reading group copy — Issue XXIX. Marked up by J.R., A.M., and T.S.
+
+ABSTRACT
+
+Most learned world models are trained to predict pixels: given a frame and an
+action, produce the next frame. We argue this objective wastes capacity on
+unpredictable, task-irrelevant detail — the exact texture of a leaf, the grain
+of static on a screen — and propose instead that a world model should predict
+in a learned representation space. A joint-embedding predictive architecture
+(JEPA) trains an encoder and a predictor jointly: the encoder maps observations
+to a latent space, and the predictor forecasts future latents from past ones
+and an action, without ever reconstructing pixels. We show this shifts model
+capacity toward the regularities that matter for control and planning.
+
+SECTION 1. INTRODUCTION
+
+A model of the world is only useful if it can be queried: what happens if I
+push this block? Where will the ball be in two seconds? Reconstruction-based
+world models answer these questions by generating a full future frame, then
+letting a downstream policy read out whatever it needs. This is expensive, and
+worse, it forces the model to spend most of its capacity on the parts of the
+scene that carry no information about the outcome the policy actually cares
+about — the color of a distant wall, the shape of a shadow.
+
+The joint-embedding approach we describe here follows a simpler principle:
+predict only in a space where prediction is possible. An encoder learns a
+representation in which the future is more predictable than it is in pixel
+space, precisely because that representation is free to discard whatever
+cannot be predicted. This is not a new idea in isolation — self-supervised
+representation learning has used joint embeddings for years — but applying it
+to a *predictive*, action-conditioned setting for world modeling is a more
+recent turn, most clearly stated in LeCun's 2022 position paper on autonomous
+machine intelligence.
+
+SECTION 2. METHOD
+
+The architecture has three pieces: an encoder, a predictor, and a target
+encoder. The encoder maps the current observation to a latent vector. The
+predictor takes that latent, together with the action taken, and forecasts the
+latent of the next observation. The target encoder — an exponential moving
+average of the main encoder's weights — produces the "true" future latent that
+the predictor is trained to match. Using a separate, slowly-updated target
+encoder is what prevents the whole system from collapsing to a trivial
+constant representation, since the predictor's target keeps drifting slightly
+out of reach of a lazy shortcut.
+
+Training proceeds entirely without pixel reconstruction. The loss is a
+distance between the predicted latent and the target latent, plus a
+regularization term that keeps the latent distribution from collapsing in
+variance — an isotropic covariance penalty, applied per batch. We found this
+regularizer to be the single most sensitive hyperparameter in the whole setup;
+too weak, and the encoder finds a shortcut within a few thousand steps; too
+strong, and useful structure gets pushed out of the latent along with the
+noise.
+
+SECTION 3. RESULTS AND DISCUSSION
+
+Across the manipulation and navigation tasks in our test suite, the
+joint-embedding predictor reached comparable downstream task performance to a
+pixel-reconstruction baseline using roughly one-twentieth of the parameters,
+and trained in a third of the wall-clock time. The gap was largest in visually
+cluttered scenes, exactly where we expected the reconstruction objective to
+waste the most capacity on irrelevant detail.
+
+The regularizer's sensitivity deserves more attention than we can give it
+here — see the production schedule for this issue for the reviewer thread
+tracking that exact question. We also suspect the target-encoder update rate
+interacts with task horizon in ways our current experiments do not cleanly
+separate; a natural next step is a sweep across both.
+
+"The interesting failures were never in the predictor. They were always a
+symptom of a collapsing encoder, dressed up as something else."
+
+None of this is a claim that pixels are the wrong representation for every
+purpose — a model built to generate images for a human to look at still needs
+to predict pixels eventually. Our claim is narrower: for a model whose only
+job is to support planning and control, prediction in a learned latent space
+is a better use of a fixed parameter budget than prediction in pixel space.
+
+REFERENCES
+
+[1] LeCun, Y. (2022). A Path Towards Autonomous Machine Intelligence.
+[2] Reading group notes, Issue XXIX production schedule — see the Desk.
+[3] Sector comparison figure, real vs. reconstructed detail — see Figures.

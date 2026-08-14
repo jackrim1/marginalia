@@ -23,7 +23,7 @@ function collectErrors(page) {
   return errors;
 }
 
-const PAGES = ['index.html', 'components.html', 'charts.html', 'board.html'];
+const PAGES = ['index.html', 'components.html', 'charts.html', 'board.html', 'read.html'];
 
 for (const f of PAGES) {
   test(`${f} loads without JS errors`, async ({ page }) => {
@@ -138,4 +138,116 @@ test('board page checklist checkbox toggles done state and progress count', asyn
   await box.check();
   await expect(page.locator('#checklist-progress')).toContainText('3 / 7 done');
   await expect(page.locator('[data-task="t1"]').locator('xpath=ancestor::label')).toHaveClass(/is-done/);
+});
+
+// selects an exact phrase inside #article-body (must sit in a single text
+// node, i.e. not already split by another inline mark) and fires the mouseup
+// our annotate-popup listener is bound to, same as a real drag-select would.
+async function selectPhrase(page, phrase) {
+  const ok = await page.evaluate((needle) => {
+    const paras = Array.from(document.querySelectorAll('#article-body p'));
+    for (const p of paras) {
+      const walker = document.createTreeWalker(p, NodeFilter.SHOW_TEXT);
+      let node;
+      while ((node = walker.nextNode())) {
+        const idx = node.textContent.indexOf(needle);
+        if (idx !== -1) {
+          const range = document.createRange();
+          range.setStart(node, idx);
+          range.setEnd(node, idx + needle.length);
+          const sel = window.getSelection();
+          sel.removeAllRanges();
+          sel.addRange(range);
+          return true;
+        }
+      }
+    }
+    return false;
+  }, phrase);
+  if (!ok) throw new Error(`phrase not found in a single text node: "${phrase}"`);
+  await page.dispatchEvent('#article-body', 'mouseup');
+  await page.waitForTimeout(150);
+}
+
+test('read page renders margin notes positioned next to their markers', async ({ page }) => {
+  await page.goto(url('read.html'), { waitUntil: 'load' });
+  await page.waitForTimeout(1000);
+  await expect(page.locator('.mg-margin-note')).toHaveCount(3);
+  await expect(page.locator('.mg-note-marker')).toHaveCount(3);
+  const style = await page.locator('.mg-margin-note').first().getAttribute('style');
+  expect(style).toMatch(/position:\s*absolute/);
+  expect(style).toMatch(/top:\s*-?[\d.]+px/);
+});
+
+test('read page: selecting text offers flag/wash/note, and flag marks it', async ({ page }) => {
+  await page.goto(url('read.html'), { waitUntil: 'load' });
+  await page.waitForTimeout(1000);
+  await expect(page.locator('.mg-mark-flag')).toHaveCount(2);
+  await selectPhrase(page, 'a better use of a fixed parameter budget');
+  await expect(page.locator('#annot-popup')).not.toHaveClass(/hidden/);
+  await page.click('#annot-popup button[data-act="flag"]');
+  await expect(page.locator('.mg-mark-flag')).toHaveCount(3);
+  await expect(page.locator('#annot-popup')).toHaveClass(/hidden/);
+});
+
+test('read page: a new note can be created from a selection', async ({ page }) => {
+  await page.goto(url('read.html'), { waitUntil: 'load' });
+  await page.waitForTimeout(1000);
+  await selectPhrase(page, 'a sweep across both');
+  await page.click('#annot-popup button[data-act="note"]');
+  await expect(page.locator('.mg-note-marker')).toHaveCount(4);
+  const input = page.locator('[data-note-input="4"]');
+  await input.fill('Check this against the appendix.');
+  await page.click('[data-save-note="4"]');
+  await expect(page.locator('.mg-margin-note[data-note="4"]')).toContainText('Check this against the appendix.');
+});
+
+test('read page: a margin note thread accepts a new reply', async ({ page }) => {
+  await page.goto(url('read.html'), { waitUntil: 'load' });
+  await page.waitForTimeout(1000);
+  await page.click('[data-toggle="1"]');
+  await expect(page.locator('[data-thread="1"]')).not.toHaveClass(/hidden/);
+  await page.fill('[data-reply-input="1"]', 'Agreed — flagging in the next pass.');
+  await page.click('[data-post-reply="1"]');
+  await expect(page.locator('[data-thread="1"]')).toContainText('Agreed — flagging in the next pass.');
+  await expect(page.locator('[data-toggle="1"]')).toContainText('2 replies');
+});
+
+test('read page: citation hover shows its reference preview', async ({ page }) => {
+  await page.goto(url('read.html'), { waitUntil: 'load' });
+  await page.waitForTimeout(1000);
+  await page.hover('.mg-cite[data-cite="1"]');
+  await expect(page.locator('#cite-preview')).toHaveClass(/is-shown/);
+  await expect(page.locator('#cite-preview')).toContainText('LeCun');
+});
+
+test('read page: sketch mode places a stamp on the sketch layer', async ({ page }) => {
+  await page.goto(url('read.html'), { waitUntil: 'load' });
+  await page.waitForTimeout(1000);
+  await page.click('[data-mode="sketch"]');
+  await expect(page.locator('#sketch-tools')).toBeVisible();
+  await page.click('[data-stamp="circle"]');
+  await page.click('#sketch-svg', { position: { x: 150, y: 100 } });
+  await expect(page.locator('#sketch-svg > *')).not.toHaveCount(0);
+});
+
+test('read page: a margin note can hold its own freehand sketch', async ({ page }) => {
+  await page.goto(url('read.html'), { waitUntil: 'load' });
+  await page.waitForTimeout(1000);
+  await page.click('[data-toggle-sketch="1"]');
+  await expect(page.locator('[data-sketchwrap="1"]')).toBeVisible();
+
+  const box = await page.locator('[data-sketch="1"]').boundingBox();
+  await page.mouse.move(box.x + 10, box.y + 10);
+  await page.mouse.down();
+  await page.mouse.move(box.x + 60, box.y + 40, { steps: 5 });
+  await page.mouse.up();
+  await expect(page.locator('[data-sketch="1"] > *')).not.toHaveCount(0);
+
+  // survives a re-render triggered elsewhere (e.g. posting a reply on another note)
+  await page.click('[data-toggle="2"]');
+  await expect(page.locator('[data-sketch="1"] > *')).not.toHaveCount(0);
+
+  await page.click('[data-clear-sketch="1"]');
+  await expect(page.locator('[data-sketch="1"] > *')).toHaveCount(0);
 });

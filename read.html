@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Marginalia — Margins</title>
+
+  <!-- Tailwind (Play CDN) + shared config -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="js/tailwind.config.js"></script>
+
+  <!-- rough.js — hand-drawn line/box rendering, also used for freehand sketches here -->
+  <script src="https://cdn.jsdelivr.net/npm/roughjs@4.6.6/bundled/rough.js"></script>
+
+  <!-- Academic serif + technical mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Old+Standard+TT:ital,wght@0,400;0,700;1,400&family=Spectral:ital,wght@0,300;0,400;0,500;0,600;1,400;1,500&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <!-- Design system: tokens -> primitives -> components -> themes -->
+  <link rel="stylesheet" href="css/tokens.css" />
+  <link rel="stylesheet" href="css/primitives.css" />
+  <link rel="stylesheet" href="css/components.css" />
+  <link rel="stylesheet" href="css/themes.css" />
+  <script src="js/theme.js"></script>
+</head>
+
+<body class="mg-paper-grain font-serif text-ink antialiased selection:bg-ember/30">
+
+  <div class="mg-drafting-grid fixed inset-0 z-0 pointer-events-none opacity-50"></div>
+  <div class="mg-reg-guides   fixed inset-0 z-0 pointer-events-none"></div>
+
+  <span class="mg-crop" style="top:14px;left:14px"></span>
+  <span class="mg-crop" style="top:14px;right:14px;transform:scaleX(-1)"></span>
+  <span class="mg-crop" style="bottom:14px;left:14px;transform:scaleY(-1)"></span>
+  <span class="mg-crop" style="bottom:14px;right:14px;transform:scale(-1)"></span>
+
+  <!-- ============================ NAVBAR ============================ -->
+  <header class="relative z-20">
+    <nav class="max-w-7xl mx-auto px-6 lg:px-10 pt-6">
+      <div class="flex items-center justify-between border-b border-ink/25 pb-3">
+        <div class="flex items-center gap-3">
+          <div class="flex">
+            <div class="w-5 h-5 rounded-full bg-rust mg-halftone-fine"></div>
+            <div class="w-5 h-5 rounded-full bg-ember mg-halftone-fine -ml-2"></div>
+          </div>
+          <span class="font-display text-2xl tracking-tight mg-printed">Marginalia</span>
+          <span class="font-mono text-[10px] uppercase tracking-[0.3em] text-faded mt-1 hidden sm:inline">est. mcmlxii</span>
+        </div>
+
+        <ul class="hidden lg:flex items-center gap-8 font-mono text-[11px] uppercase tracking-[0.18em] text-faded">
+          <li><a href="index.html" class="hover:text-rust transition-colors border-b border-transparent hover:border-rust pb-0.5">Reading</a></li>
+          <li><a href="charts.html" class="hover:text-rust transition-colors border-b border-transparent hover:border-rust pb-0.5">Figures</a></li>
+          <li><a href="components.html" class="hover:text-rust transition-colors border-b border-transparent hover:border-rust pb-0.5">Components</a></li>
+          <li><a href="board.html" class="hover:text-rust transition-colors border-b border-transparent hover:border-rust pb-0.5">Desk</a></li>
+          <li><a href="read.html" aria-current="page" class="text-ink border-b border-rust pb-0.5">Margins</a></li>
+        </ul>
+
+        <div class="flex items-center gap-3">
+          <div class="hidden sm:flex items-center gap-1" role="group" aria-label="Theme">
+            <button class="mg-theme-btn" data-theme-set="light">Light</button>
+            <button class="mg-theme-btn" data-theme-set="darkroom">Dark</button>
+            <button class="mg-theme-btn" data-theme-set="blueprint">Blue</button>
+          </div>
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  <!-- ============================ MASTHEAD ============================ -->
+  <section class="relative z-10 max-w-7xl mx-auto px-6 lg:px-10 pt-16 pb-10">
+    <div class="flex items-center gap-4 font-mono text-[10px] uppercase tracking-[0.25em] text-faded mb-6 mg-anim-rise">
+      <span>Issue XXIX</span><span class="text-rust">◦</span>
+      <span>Reading Group Copy</span><span class="text-rust">◦</span>
+      <span>Marked Up</span>
+    </div>
+
+    <h1 class="mg-letterpress mg-anim-ink font-display italic text-6xl sm:text-7xl lg:text-8xl leading-[0.95] tracking-tight"
+        data-text="Margins">
+      Margins
+    </h1>
+
+    <p class="mt-6 max-w-2xl mg-anim-rise leading-loose" style="animation-delay:.2s">
+      <span class="mg-text-halo font-serif text-lg text-ink">Every paper the group reads gets marked up: a flag or a
+      wash across the text, a note in the margin with its own thread and its own quick sketch, and a pen for marking
+      up the page itself. Select any text below to try it.</span>
+    </p>
+
+    <div class="mt-8 h-px bg-ink/40 mg-anim-drawX" style="animation-delay:.4s"></div>
+  </section>
+
+  <!-- ============================ TOOLBAR ============================ -->
+  <div class="relative z-10 max-w-7xl mx-auto px-6 lg:px-10">
+    <div class="flex flex-wrap items-center gap-2 mb-8 pb-4 border-b border-ink/15">
+      <span class="mg-mono-label mr-1">Mode</span>
+      <button class="mg-theme-btn is-active" data-mode="read">Read</button>
+      <button class="mg-theme-btn" data-mode="sketch">Sketch</button>
+      <span class="w-px h-4 bg-ink/20 mx-2 hidden sm:inline-block"></span>
+      <div id="sketch-tools" class="hidden items-center gap-2 flex-wrap">
+        <button class="mg-theme-btn is-active" data-stamp="pen">Pen</button>
+        <button class="mg-theme-btn" data-stamp="caret">Insert&nbsp;^</button>
+        <button class="mg-theme-btn" data-stamp="circle">Circle</button>
+        <button class="mg-theme-btn" data-stamp="arrow">Arrow</button>
+        <button class="mg-theme-btn" data-stamp="wavy">Awkward&nbsp;~</button>
+        <button class="mg-theme-btn" id="sketch-clear">Clear</button>
+      </div>
+      <span class="mg-mono-label ml-auto hidden md:inline">flag = underline · wash = tint · ① = margin note · [n] = citation</span>
+    </div>
+  </div>
+
+  <!-- ============================ BODY ============================ -->
+  <main class="relative z-10 max-w-7xl mx-auto px-6 lg:px-10 pb-24">
+    <div class="grid grid-cols-1 lg:grid-cols-[600px_460px] gap-8">
+
+      <!-- ----------------- ARTICLE COLUMN ----------------- -->
+      <div class="relative" id="article-col" data-reveal>
+        <svg id="sketch-svg" class="mg-sketch-layer"></svg>
+
+        <div id="annot-popup" class="mg-annot-popup hidden">
+          <button data-act="flag">Flag</button>
+          <button data-act="context">Wash</button>
+          <button data-act="note">Note</button>
+        </div>
+        <div id="cite-preview" class="mg-cite-preview"></div>
+
+        <article id="article-body" class="relative font-serif text-[17px] leading-[1.85] text-ink">
+          <div class="mg-mono-label mb-3">Reading group copy · Issue XXIX · marked up by J.R., A.M., and T.S.</div>
+          <h2 class="font-display text-3xl sm:text-4xl mg-printed mb-8 leading-tight">Joint-Embedding Predictive Architectures for World Models</h2>
+
+          <h3 class="mg-mono-label mb-2">Abstract</h3>
+          <p class="mb-8">
+            <span class="float-left font-display text-6xl leading-[0.75] pr-2 pt-1">M</span>ost learned world models
+            are trained to predict pixels: given a frame and an action, produce the next frame. We argue this
+            objective wastes capacity on unpredictable, task-irrelevant detail — the exact texture of a leaf, the
+            grain of static on a screen — and propose instead that a world model should
+            <span class="mg-mark-flag">predict in a learned representation space</span>. A joint-embedding
+            predictive architecture (JEPA) trains an encoder and a predictor jointly: the encoder maps observations
+            to a latent space, and the predictor forecasts future latents from past ones and an action, without
+            ever reconstructing pixels.<span class="mg-note-marker" data-note="1">1</span> We show this shifts
+            model capacity toward the regularities that matter for control and planning.
+          </p>
+
+          <h3 class="mg-mono-label mb-2">§1 · Introduction</h3>
+          <p class="mb-5">
+            A model of the world is only useful if it can be queried: what happens if I push this block? Where will
+            the ball be in two seconds? Reconstruction-based world models answer these questions by generating a
+            full future frame, then letting a downstream policy read out whatever it needs. This is expensive, and
+            worse, it forces the model to spend most of its capacity on the parts of the scene that carry no
+            information about the outcome the policy actually cares about — the color of a distant wall, the shape
+            of a shadow.
+          </p>
+          <p class="mb-8">
+            The joint-embedding approach we describe here follows a simpler principle:
+            <span class="mg-mark-context">predict only in a space where prediction is possible</span>. An encoder
+            learns a representation in which the future is more predictable than it is in pixel space, precisely
+            because that representation is free to discard whatever cannot be predicted. This is not a new idea in
+            isolation — self-supervised representation learning has used joint embeddings for years — but applying
+            it to a <em>predictive</em>, action-conditioned setting for world modeling is a more recent turn, most
+            clearly stated in LeCun's 2022 position paper on autonomous machine
+            intelligence.<sup class="mg-cite" data-cite="1">[1]</sup>
+          </p>
+
+          <h3 class="mg-mono-label mb-2">§2 · Method</h3>
+          <p class="mb-5">
+            The architecture has three pieces: an encoder, a predictor, and a target encoder. The encoder maps the
+            current observation to a latent vector. The predictor takes that latent, together with the action
+            taken, and forecasts the latent of the next observation. The target encoder — an exponential moving
+            average of the main encoder's weights — produces the "true" future latent that the predictor is trained
+            to match. Using a separate, slowly-updated target encoder is what
+            <span class="mg-mark-flag">prevents the whole system from collapsing to a trivial constant
+            representation</span>, since the predictor's target keeps drifting slightly out of reach of a lazy
+            shortcut.
+          </p>
+          <p class="mb-8">
+            Training proceeds entirely without pixel reconstruction. The loss is a distance between the predicted
+            latent and the target latent, plus a regularization term that keeps the latent distribution from
+            collapsing in variance — an isotropic covariance penalty, applied per
+            batch.<span class="mg-note-marker" data-note="2">2</span> We found this regularizer to be the single
+            most sensitive hyperparameter in the whole setup; too weak, and the encoder finds a shortcut within a
+            few thousand steps; too strong, and useful structure gets pushed out of the latent along with the
+            noise.
+          </p>
+
+          <h3 class="mg-mono-label mb-2">§3 · Results &amp; Discussion</h3>
+          <p class="mb-5">
+            Across the manipulation and navigation tasks in our test suite, the joint-embedding predictor reached
+            comparable downstream task performance to a pixel-reconstruction baseline using roughly one-twentieth
+            of the parameters,<span class="mg-note-marker" data-note="3">3</span> and trained in a third of the
+            wall-clock time. The gap was largest in visually cluttered scenes,<sup class="mg-cite" data-cite="3">[3]</sup>
+            exactly where we expected the reconstruction objective to waste the most capacity on irrelevant detail.
+          </p>
+          <p class="mb-8">
+            The regularizer's sensitivity deserves more attention than we can give it here — see the production
+            schedule for this issue for the reviewer thread tracking that exact
+            question.<sup class="mg-cite" data-cite="2">[2]</sup> We also suspect the target-encoder update rate
+            interacts with task horizon in ways our current experiments do not cleanly separate; a natural next
+            step is a sweep across both.
+          </p>
+
+          <div class="relative py-6 my-8 max-w-lg mx-auto">
+            <div class="absolute inset-0 bg-rust/90 mg-halftone"></div>
+            <blockquote class="relative font-display italic text-2xl leading-tight text-paper px-8 mg-printed">
+              "The interesting failures were never in the predictor. They were always a symptom of a collapsing
+              encoder, dressed up as something else."
+            </blockquote>
+          </div>
+
+          <p class="mb-4">
+            None of this is a claim that pixels are the wrong representation for every purpose — a model built to
+            generate images for a human to look at still needs to predict pixels eventually. Our claim is narrower:
+            for a model whose only job is to support planning and control, prediction in a learned latent space is
+            a better use of a fixed parameter budget than prediction in pixel space.
+          </p>
+
+          <section class="mt-14 pt-6 border-t border-ink/25">
+            <div class="mg-mono-label mb-3">References</div>
+            <ol class="font-serif text-sm text-faded space-y-2">
+              <li id="ref-1"><span class="font-mono text-ink mr-2">[1]</span>LeCun, Y. (2022). <em>A Path Towards Autonomous Machine Intelligence.</em></li>
+              <li id="ref-2"><span class="font-mono text-ink mr-2">[2]</span>Reading group notes, Issue XXIX production schedule — <a href="board.html" class="text-rust border-b border-rust">see the Desk →</a></li>
+              <li id="ref-3"><span class="font-mono text-ink mr-2">[3]</span>Sector comparison figure, real vs. reconstructed detail — <a href="charts.html" class="text-rust border-b border-rust">see Figures →</a></li>
+            </ol>
+          </section>
+        </article>
+      </div>
+
+      <!-- ----------------- MARGIN RAIL ----------------- -->
+      <aside class="relative" id="margin-rail" data-reveal></aside>
+    </div>
+  </main>
+
+  <!-- ============================ FOOTER ============================ -->
+  <footer class="relative z-10 max-w-7xl mx-auto px-6 lg:px-10 border-t border-ink/30 py-8 mb-6">
+    <p class="mg-mono-label">Marginalia design system · Margins — flags, washes, notes, threads &amp; sketches · © MMXXVI</p>
+  </footer>
+
+  <script>
+  // ============================================================
+  // shared bits (mirrors the avatar/tag patterns from board.html)
+  // ============================================================
+  const AVATAR_CLASS = { JR: 'bg-rust', AM: 'bg-slate', TS: 'bg-coral', YO: 'bg-ember' };
+  const initials = (name) => (name || '?').replace(/[^A-Za-z]/g, '').toUpperCase().slice(0, 2) || '??';
+  function avatar(name) {
+    const ini = initials(name);
+    const cls = AVATAR_CLASS[ini] || 'bg-ink';
+    return `<span class="w-7 h-7 rounded-full ${cls} mg-halftone-fine flex items-center justify-center font-mono text-[10px] text-paper shrink-0" title="${name}">${ini}</span>`;
+  }
+
+  const articleCol  = document.getElementById('article-col');
+  const articleBody = document.getElementById('article-body');
+  const marginRail  = document.getElementById('margin-rail');
+
+  // ============================================================
+  // MARGIN NOTES — Tufte-style sidenotes, level with their marker,
+  // each a small threaded discussion.
+  // ============================================================
+  const NOTES = [
+    { id: 1, author: 'A.M.', when: '2 days ago',
+      text: 'This is the whole trick — no decoder, no pixel loss, ever.',
+      replies: [{ by: 'J.R.', when: '1 day ago', text: 'Worth stressing in the write-up. First-time readers keep expecting a decoder.' }],
+      sketch: [], sketchOpen: false, threadOpen: false },
+    { id: 2, author: 'T.S.', when: '3 days ago',
+      text: 'Flagged this exact hyperparameter as fragile in review — chasing it down.',
+      link: { href: 'board.html', label: "See the Editor's Checklist →" }, replies: [],
+      sketch: [], sketchOpen: false, threadOpen: false },
+    { id: 3, author: 'J.R.', when: 'today',
+      text: 'Worth checking against the loss chart before we cite the 20x figure.',
+      link: { href: 'charts.html', label: 'See Figure C, Loss →' }, replies: [],
+      sketch: [], sketchOpen: false, threadOpen: false },
+  ];
+  let nextNoteId = NOTES.length + 1;
+
+  // shared with the article-level sketch layer further down: a rough.js
+  // freehand stroke, and its house colour read live from the theme tokens.
+  function rustColor() {
+    const v = getComputedStyle(document.documentElement).getPropertyValue('--rgb-rust').trim();
+    return `rgb(${v.replace(/\s+/g, ',')})`;
+  }
+  function paintStrokes(svg, strokes) {
+    const rc = rough.svg(svg);
+    strokes.forEach((d) => svg.appendChild(rc.path(d, { stroke: rustColor(), strokeWidth: 1.8, roughness: 1.3, bowing: 1 })));
+  }
+  // wires a small always-live drawing pad; each finished stroke is pushed to
+  // `strokes` (the note's own data) so it survives the next re-render.
+  function wireSketchPad(svg, strokes) {
+    const rc = rough.svg(svg);
+    let drawing = false, pts = [];
+    const ptFor = (e) => { const r = svg.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; };
+    svg.addEventListener('pointerdown', (e) => { drawing = true; pts = [ptFor(e)]; svg.setPointerCapture(e.pointerId); e.stopPropagation(); });
+    svg.addEventListener('pointermove', (e) => { if (drawing) pts.push(ptFor(e)); });
+    function end() {
+      if (!drawing) return;
+      drawing = false;
+      if (pts.length > 1) {
+        const d = 'M ' + pts.map((p) => `${p.x} ${p.y}`).join(' L ');
+        strokes.push(d);
+        svg.appendChild(rc.path(d, { stroke: rustColor(), strokeWidth: 1.8, roughness: 1.3, bowing: 1 }));
+      }
+      pts = [];
+    }
+    svg.addEventListener('pointerup', end);
+    svg.addEventListener('pointerleave', end);
+  }
+
+  function replyRow(r) {
+    return `<div class="flex items-start gap-2.5">
+      ${avatar(r.by)}
+      <div class="min-w-0">
+        <div class="font-mono text-[10.5px] text-faded">${r.by} · ${r.when}</div>
+        <p class="font-serif text-[13.5px] leading-snug text-ink mt-0.5">${r.text}</p>
+      </div>
+    </div>`;
+  }
+
+  function noteCard(n) {
+    if (n.editing) {
+      return `<div class="mg-margin-note p-4 pl-8" data-note="${n.id}">
+        <div class="mg-mono-label mb-2">Note ${n.id} · new</div>
+        <textarea class="w-full text-[14px] font-serif bg-paper border border-ink/25 p-3" rows="4" placeholder="Write your note…" data-note-input="${n.id}"></textarea>
+        <div class="mg-mono-label mt-3 mb-1.5">sketch (optional)</div>
+        <svg class="mg-note-sketch" data-sketch="${n.id}"></svg>
+        <div class="flex items-center justify-between mt-1.5">
+          <button class="mg-mono-label hover:text-rust" data-clear-sketch="${n.id}">clear</button>
+          <button class="mg-mono-label hover:text-rust" data-save-note="${n.id}">save</button>
+        </div>
+      </div>`;
+    }
+    const threadLabel = n.replies.length ? (n.replies.length + (n.replies.length === 1 ? ' reply' : ' replies')) : 'reply';
+    const sketchLabel = n.sketchOpen ? 'hide sketch' : (n.sketch.length ? 'show sketch' : '+ sketch');
+    return `<div class="mg-margin-note p-4 pl-8" data-note="${n.id}">
+      <div class="mg-mono-label mb-2">Note ${n.id}</div>
+      <div class="flex items-start gap-2.5 mb-3">
+        ${avatar(n.author)}
+        <div class="min-w-0">
+          <div class="font-mono text-[10.5px] text-faded">${n.author} · ${n.when}</div>
+          <p class="font-serif text-[14.5px] leading-snug text-ink mt-0.5">${n.text}</p>
+          ${n.link ? `<a href="${n.link.href}" class="font-mono text-[10.5px] text-rust border-b border-rust">${n.link.label}</a>` : ''}
+        </div>
+      </div>
+      <div class="flex items-center gap-5">
+        <button class="mg-mono-label hover:text-rust" data-toggle="${n.id}">${threadLabel}</button>
+        <button class="mg-mono-label hover:text-rust" data-toggle-sketch="${n.id}">${sketchLabel}</button>
+      </div>
+      <div class="${n.sketchOpen ? '' : 'hidden'} mt-3" data-sketchwrap="${n.id}">
+        <svg class="mg-note-sketch" data-sketch="${n.id}"></svg>
+        <button class="mg-mono-label hover:text-rust mt-1.5" data-clear-sketch="${n.id}">clear</button>
+      </div>
+      <div class="${n.threadOpen ? '' : 'hidden'} mt-3 space-y-3 pl-6 border-l border-ink/10" data-thread="${n.id}">
+        ${n.replies.map(replyRow).join('')}
+        <div>
+          <textarea class="w-full text-[13.5px] font-serif bg-paper border border-ink/25 p-3" rows="4" placeholder="Add a reply…" data-reply-input="${n.id}"></textarea>
+          <button class="mg-mono-label hover:text-rust mt-1.5" data-post-reply="${n.id}">post</button>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  function renderNotes() {
+    marginRail.innerHTML = NOTES.map(noteCard).join('');
+    marginRail.querySelectorAll('[data-sketch]').forEach((svg) => {
+      const n = NOTES.find((x) => x.id === Number(svg.dataset.sketch));
+      if (!n) return;
+      paintStrokes(svg, n.sketch);
+      wireSketchPad(svg, n.sketch);
+    });
+    marginRail.querySelectorAll('[data-toggle-sketch]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const n = NOTES.find((x) => x.id === Number(btn.dataset.toggleSketch));
+        n.sketchOpen = !n.sketchOpen;
+        renderNotes();
+        layoutNotes();
+      });
+    });
+    marginRail.querySelectorAll('[data-clear-sketch]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const n = NOTES.find((x) => x.id === Number(btn.dataset.clearSketch));
+        n.sketch = [];
+        renderNotes();
+        layoutNotes();
+      });
+    });
+    marginRail.querySelectorAll('[data-toggle]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const n = NOTES.find((x) => x.id === Number(btn.dataset.toggle));
+        n.threadOpen = !n.threadOpen;
+        renderNotes();
+        layoutNotes();
+      });
+    });
+    marginRail.querySelectorAll('[data-post-reply]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const id = Number(btn.dataset.postReply);
+        const ta = marginRail.querySelector(`[data-reply-input="${id}"]`);
+        const val = (ta.value || '').trim();
+        if (!val) return;
+        const n = NOTES.find((x) => x.id === id);
+        n.replies.push({ by: 'You', when: 'just now', text: val });
+        n.threadOpen = true;
+        renderNotes();
+        layoutNotes();
+      });
+    });
+    marginRail.querySelectorAll('[data-save-note]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const id = Number(btn.dataset.saveNote);
+        const ta = marginRail.querySelector(`[data-note-input="${id}"]`);
+        const val = (ta.value || '').trim();
+        const n = NOTES.find((x) => x.id === id);
+        if (!val) { NOTES.splice(NOTES.indexOf(n), 1); document.querySelector(`.mg-note-marker[data-note="${id}"]`)?.remove(); renderNotes(); layoutNotes(); return; }
+        n.text = val; n.author = 'You'; n.when = 'just now'; n.editing = false;
+        n.sketchOpen = n.sketch.length > 0;
+        renderNotes();
+        layoutNotes();
+      });
+    });
+    marginRail.querySelectorAll('.mg-margin-note').forEach((card) => {
+      const id = card.dataset.note;
+      card.addEventListener('mouseenter', () => document.querySelector(`.mg-note-marker[data-note="${id}"]`)?.classList.add('is-active'));
+      card.addEventListener('mouseleave', () => document.querySelector(`.mg-note-marker[data-note="${id}"]`)?.classList.remove('is-active'));
+    });
+  }
+
+  function isDesktop() { return window.matchMedia('(min-width: 1024px)').matches; }
+
+  function layoutNotes() {
+    const cards = Array.from(marginRail.querySelectorAll('.mg-margin-note'));
+    if (!isDesktop()) {
+      cards.forEach((c) => { c.style.position = 'static'; c.style.top = ''; c.classList.add('mb-4'); });
+      return;
+    }
+    const artRect = articleCol.getBoundingClientRect();
+    const GAP = 16;
+    const rows = cards.map((card) => {
+      const id = card.dataset.note;
+      const marker = document.querySelector(`.mg-note-marker[data-note="${id}"]`);
+      const anchorTop = marker ? (marker.getBoundingClientRect().top - artRect.top) : 0;
+      return { card, anchorTop };
+    }).sort((a, b) => a.anchorTop - b.anchorTop);
+
+    let prevBottom = -Infinity;
+    rows.forEach(({ card, anchorTop }) => {
+      card.style.position = 'absolute';
+      card.classList.remove('mb-4');
+      const top = Math.max(anchorTop, prevBottom + GAP);
+      card.style.top = top + 'px';
+      prevBottom = top + card.offsetHeight;
+    });
+  }
+
+  document.addEventListener('click', (e) => {
+    const marker = e.target.closest('.mg-note-marker');
+    if (!marker) return;
+    const id = marker.dataset.note;
+    const card = marginRail.querySelector(`.mg-margin-note[data-note="${id}"]`);
+    if (card) { card.scrollIntoView({ behavior: 'smooth', block: 'center' }); card.classList.add('is-active'); setTimeout(() => card.classList.remove('is-active'), 1400); }
+  });
+  document.addEventListener('mouseover', (e) => {
+    const marker = e.target.closest('.mg-note-marker');
+    if (!marker) return;
+    marginRail.querySelector(`.mg-margin-note[data-note="${marker.dataset.note}"]`)?.classList.add('is-active');
+  });
+  document.addEventListener('mouseout', (e) => {
+    const marker = e.target.closest('.mg-note-marker');
+    if (!marker) return;
+    marginRail.querySelector(`.mg-margin-note[data-note="${marker.dataset.note}"]`)?.classList.remove('is-active');
+  });
+
+  // ============================================================
+  // CITATIONS — footnote numbers with a hover preview, matching
+  // the References list at the foot of the article.
+  // ============================================================
+  const CITATIONS = {
+    1: 'LeCun, Y. (2022). A Path Towards Autonomous Machine Intelligence.',
+    2: 'Reading group notes, Issue XXIX production schedule — see the Desk.',
+    3: 'Sector comparison figure, real vs. reconstructed detail — see Figures.',
+  };
+  const citePreview = document.getElementById('cite-preview');
+  document.querySelectorAll('.mg-cite').forEach((el) => {
+    el.addEventListener('mouseenter', () => {
+      const artRect = articleCol.getBoundingClientRect();
+      const r = el.getBoundingClientRect();
+      citePreview.textContent = CITATIONS[el.dataset.cite] || '';
+      citePreview.style.left = Math.max(0, r.left - artRect.left - 20) + 'px';
+      citePreview.style.top = (r.bottom - artRect.top + 10) + 'px';
+      citePreview.classList.add('is-shown');
+    });
+    el.addEventListener('mouseleave', () => citePreview.classList.remove('is-shown'));
+    el.addEventListener('click', () => document.getElementById('ref-' + el.dataset.cite)?.scrollIntoView({ behavior: 'smooth', block: 'center' }));
+  });
+
+  // ============================================================
+  // SELECTION POPUP — flag / wash / note a selection, live
+  // ============================================================
+  const popup = document.getElementById('annot-popup');
+  let pendingRange = null;
+  let currentMode = 'read';
+
+  function hidePopup() { popup.classList.add('hidden'); pendingRange = null; }
+  function maybeShowPopup() {
+    if (currentMode !== 'read') return;
+    const sel = window.getSelection();
+    if (!sel || sel.isCollapsed || sel.rangeCount === 0) { hidePopup(); return; }
+    const range = sel.getRangeAt(0);
+    if (!articleBody.contains(range.commonAncestorContainer)) { hidePopup(); return; }
+    pendingRange = range.cloneRange();
+    const artRect = articleCol.getBoundingClientRect();
+    const r = range.getBoundingClientRect();
+    popup.style.left = Math.max(0, r.left + r.width / 2 - artRect.left - 60) + 'px';
+    popup.style.top = (r.top - artRect.top - 42) + 'px';
+    popup.classList.remove('hidden');
+  }
+  articleBody.addEventListener('mouseup', () => setTimeout(maybeShowPopup, 10));
+  document.addEventListener('mousedown', (e) => { if (!popup.contains(e.target)) hidePopup(); });
+
+  function wrapPendingRange(cls) {
+    if (!pendingRange) return;
+    const span = document.createElement('span');
+    span.className = cls;
+    try { pendingRange.surroundContents(span); } catch (e) { /* selection crossed elements; skip */ }
+    window.getSelection().removeAllRanges();
+    hidePopup();
+  }
+  function noteFromPendingRange() {
+    if (!pendingRange) return;
+    const id = nextNoteId++;
+    const marker = document.createElement('span');
+    marker.className = 'mg-note-marker';
+    marker.dataset.note = String(id);
+    marker.textContent = String(id);
+    const r = pendingRange.cloneRange();
+    r.collapse(false);
+    r.insertNode(marker);
+    window.getSelection().removeAllRanges();
+    hidePopup();
+    NOTES.push({ id, author: 'You', when: 'just now', text: '', replies: [], editing: true, sketch: [], sketchOpen: false, threadOpen: false });
+    renderNotes();
+    layoutNotes();
+    const ta = marginRail.querySelector(`[data-note-input="${id}"]`);
+    if (ta) ta.focus();
+  }
+  popup.addEventListener('click', (e) => {
+    const btn = e.target.closest('button[data-act]');
+    if (!btn) return;
+    if (btn.dataset.act === 'flag') wrapPendingRange('mg-mark-flag');
+    else if (btn.dataset.act === 'context') wrapPendingRange('mg-mark-context');
+    else if (btn.dataset.act === 'note') noteFromPendingRange();
+  });
+
+  // ============================================================
+  // SKETCH LAYER — freehand pen + a fixed set of proofreader's marks
+  // ============================================================
+  const sketchSvg = document.getElementById('sketch-svg');
+  const rcSketch = rough.svg(sketchSvg);
+  let currentStamp = 'pen';
+  let drawing = false, penPoints = [];
+
+  function setMode(mode) {
+    currentMode = mode;
+    document.querySelectorAll('[data-mode]').forEach((b) => b.classList.toggle('is-active', b.dataset.mode === mode));
+    document.getElementById('sketch-tools').classList.toggle('hidden', mode !== 'sketch');
+    document.getElementById('sketch-tools').classList.toggle('flex', mode === 'sketch');
+    sketchSvg.classList.toggle('is-live', mode === 'sketch');
+    if (mode === 'sketch') hidePopup();
+  }
+  document.querySelectorAll('[data-mode]').forEach((b) => b.addEventListener('click', () => setMode(b.dataset.mode)));
+  document.querySelectorAll('[data-stamp]').forEach((b) => b.addEventListener('click', () => {
+    currentStamp = b.dataset.stamp;
+    document.querySelectorAll('[data-stamp]').forEach((x) => x.classList.toggle('is-active', x === b));
+  }));
+  document.getElementById('sketch-clear').addEventListener('click', () => { sketchSvg.innerHTML = ''; });
+
+  function stampAt(x, y) {
+    const opts = { stroke: rustColor(), strokeWidth: 1.8, roughness: 1.7 };
+    const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    g.setAttribute('transform', `translate(${x},${y})`);
+    let node;
+    if (currentStamp === 'caret') node = rcSketch.path('M -9 6 L 0 -8 L 9 6', opts);
+    else if (currentStamp === 'circle') node = rcSketch.ellipse(0, 0, 46, 30, opts);
+    else if (currentStamp === 'arrow') node = rcSketch.path('M -26 -14 L 10 12 M 10 12 L 1 4 M 10 12 L 4 -3', opts);
+    else if (currentStamp === 'wavy') node = rcSketch.path('M -22 0 Q -11 -10 0 0 T 22 0', opts);
+    if (node) g.appendChild(node);
+    sketchSvg.appendChild(g);
+  }
+  function svgPoint(e) {
+    const rect = sketchSvg.getBoundingClientRect();
+    return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+  }
+  sketchSvg.addEventListener('pointerdown', (e) => {
+    if (currentMode !== 'sketch') return;
+    const p = svgPoint(e);
+    if (currentStamp !== 'pen') { stampAt(p.x, p.y); return; }
+    drawing = true; penPoints = [p];
+    sketchSvg.setPointerCapture(e.pointerId);
+  });
+  sketchSvg.addEventListener('pointermove', (e) => {
+    if (!drawing || currentMode !== 'sketch') return;
+    penPoints.push(svgPoint(e));
+  });
+  function endPen() {
+    if (!drawing) return;
+    drawing = false;
+    if (penPoints.length > 1) {
+      const d = 'M ' + penPoints.map((p) => `${p.x} ${p.y}`).join(' L ');
+      const node = rcSketch.path(d, { stroke: rustColor(), strokeWidth: 2, roughness: 1.4, bowing: 1 });
+      sketchSvg.appendChild(node);
+    }
+    penPoints = [];
+  }
+  sketchSvg.addEventListener('pointerup', endPen);
+  sketchSvg.addEventListener('pointerleave', endPen);
+
+  // ============================================================
+  // wiring
+  // ============================================================
+  let _rz;
+  window.addEventListener('resize', () => { clearTimeout(_rz); _rz = setTimeout(layoutNotes, 150); });
+  document.querySelectorAll('[data-theme-set]').forEach((b) => b.addEventListener('click', () => setTimeout(layoutNotes, 80)));
+  window.addEventListener('load', () => { renderNotes(); layoutNotes(); });
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => setTimeout(layoutNotes, 60));
+  </script>
+
+  <script src="js/filters.js"></script>
+  <script src="js/interactions.js"></script>
+  <script src="js/ink-lines.js"></script>
+</body>
+</html>
